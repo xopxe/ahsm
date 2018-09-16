@@ -11,31 +11,6 @@ local M = {}
 
 local EV_TIMEOUT = {}
 
-local function enter_state (fsm, s)
-  if s.entry then s.entry(fsm, s, 'entry') end
-  s.done = nil
-  fsm.current_states[s] = true
-  if s.out_trans[EV_TIMEOUT] then 
-    s.expiration = M.get_time()+s.out_trans[EV_TIMEOUT].timeout
-  end
-  if s.is_composite then
-    --fsm.current_states[s.initial] = true
-    enter_state(fsm, s.initial)
-  end
-end
-
-local function exit_state (fsm, s, dont_call)
-  if (not dont_call) and s.exit then s.exit(fsm, s, 'exit') end
-  fsm.current_states[s] = nil
-  if s.states then --substates, is composite
-    for _, sub_s in pairs(s.states) do
-      if (fsm.current_states[sub_s]) then
-        exit_state (fsm, sub_s, true) --FIXME call or not call?
-      end
-    end
-  end
-end
-
 local function init ( composite )
   for _, s in pairs(composite.states) do
     s.out_trans = {}
@@ -107,28 +82,40 @@ M.EV_ANY = EV_ANY --singleton, event matches any event
 M.init = function ( root_s )
   local fsm = { 
     get_events = nil, --function () end,
-    current_states = {
-      [root_s.initial] = true
-    }
   }
   init( root_s )
 
-  enter_state (fsm, root_s.initial)
-
   local evqueue = {}
+  local current_states = { [root_s.initial] = true }
   local active_trans = {} --must be balenced (enter and leave step() empty)
 
-  --- Queue new event.
-  -- Add an event to the event list. All events added before running the hsm
-  -- using step() or loop() are considered simultaneous, and the order in which 
-  -- they are processed is undetermined.
-  -- @param an event
-  fsm.send_event = function (ev)
-    evqueue[ev] = true
+  local function enter_state (fsm, s)
+    if s.entry then s.entry(fsm, s, 'entry') end
+    s.done = nil
+    current_states[s] = true
+    if s.out_trans[EV_TIMEOUT] then 
+      s.expiration = M.get_time()+s.out_trans[EV_TIMEOUT].timeout
+    end
+    if s.is_composite then
+      enter_state(fsm, s.initial)
+    end
   end
 
-  local function step ()
+  local function exit_state (fsm, s, dont_call)
+    if (not dont_call) and s.exit then s.exit(fsm, s, 'exit') end
+    current_states[s] = nil
+    if s.states then --substates, is composite
+      for _, sub_s in pairs(s.states) do
+        if (current_states[sub_s]) then
+          exit_state (fsm, sub_s, true) --FIXME call or not call?
+        end
+      end
+    end
+  end
 
+  enter_state (fsm, root_s.initial)
+
+  local function step ()
     local idle = true
     local next_expiration = math.huge
 
@@ -138,7 +125,7 @@ M.init = function ( root_s )
     end
 
     --find active transitions
-    for s, _ in pairs( fsm.current_states ) do
+    for s, _ in pairs( current_states ) do
       local transited = false
       -- check for matching transitions for events
       for e, _ in pairs(evqueue) do
@@ -181,7 +168,7 @@ M.init = function ( root_s )
 
     --call leave_state, traverse transition, and enter_state
     for t, _ in pairs(active_trans) do
-      if fsm.current_states[t.src] then --src state could've been left
+      if current_states[t.src] then --src state could've been left
         idle = false
         exit_state(fsm, t.src)
         if t.effect then t.effect() end --FIXME pcall
@@ -191,7 +178,7 @@ M.init = function ( root_s )
     end
 
     --call doo on active_states
-    for s, _ in pairs(fsm.current_states) do
+    for s, _ in pairs(current_states) do
       if not s.done then
         if type(s.doo)=='nil' then 
           evqueue[s.EV_DONE] = true
@@ -218,6 +205,15 @@ M.init = function ( root_s )
     return idle, next_expiration
   end
 
+  --- Queue new event.
+  -- Add an event to the event list. All events added before running the hsm
+  -- using step() or loop() are considered simultaneous, and the order in which 
+  -- they are processed is undetermined.
+  -- @param an event
+  fsm.send_event = function (ev)
+    evqueue[ev] = true
+  end
+  
   --- Step trough the hsm
   -- A single step will consume all pending events, and do a round evaluating
   -- available doo() functions on all active states. This call finishes as soon 
