@@ -116,6 +116,7 @@ M.init = function ( root_s )
   enter_state (fsm, root_s.initial)
 
   local evqueue = {}
+  local active_trans = {} --must be balenced (enter and leave step() empty)
 
   --- Queue new event.
   -- Add an event to the event list. All events added before running the hsm
@@ -129,6 +130,7 @@ M.init = function ( root_s )
   local function step ()
 
     local idle = true
+    local next_expiration = math.huge
 
     --queue new events
     if fsm.get_events then 
@@ -136,9 +138,6 @@ M.init = function ( root_s )
     end
 
     --find active transitions
-    local active_trans = {}  --TODO declare outside and balance use
-    local next_expiration = math.huge
-
     for s, _ in pairs( fsm.current_states ) do
       local transited = false
       -- check for matching transitions for events
@@ -188,6 +187,7 @@ M.init = function ( root_s )
         if t.effect then t.effect() end --FIXME pcall
         enter_state(fsm, t.tgt)
       end
+      active_trans[t] = nil
     end
 
     --call doo on active_states
