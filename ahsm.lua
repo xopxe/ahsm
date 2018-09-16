@@ -9,6 +9,7 @@
 
 local M = {}
 
+local EV_ANY = {}
 local EV_TIMEOUT = {}
 
 local function init ( composite )
@@ -69,11 +70,15 @@ M.transition = function (t)
   return t
 end
 
-local EV_ANY = {}
-
 --- Match all events
 -- When used in the events field of a @{transition_s} will match any event.
 M.EV_ANY = EV_ANY --singleton, event matches any event
+
+--- Used on timeouts
+-- When the fsm must report a timeout (like as parameter for effect)
+-- this value wll be used
+M.EV_TIMEOUT = EV_TIMEOUT
+
 
 --- Create a hsm
 -- Constructs and initializes an hsm
@@ -90,7 +95,7 @@ M.init = function ( root_s )
   local active_trans = {} --must be balenced (enter and leave step() empty)
 
   local function enter_state (fsm, s)
-    if s.entry then s.entry(fsm, s, 'entry') end
+    if s.entry then s.entry(s) end
     s.done = nil
     current_states[s] = true
     if s.out_trans[EV_TIMEOUT] then 
@@ -102,7 +107,7 @@ M.init = function ( root_s )
   end
 
   local function exit_state (fsm, s, dont_call)
-    if (not dont_call) and s.exit then s.exit(fsm, s, 'exit') end
+    if (not dont_call) and s.exit then s.exit(s) end
     current_states[s] = nil
     if s.states then --substates, is composite
       for _, sub_s in pairs(s.states) do
@@ -130,18 +135,19 @@ M.init = function ( root_s )
       -- check for matching transitions for events
       for e, _ in pairs(evqueue) do
         local t = s.out_trans[e]
-        if t and (t.guard==nil or t.guard()) then
+        if t and (t.guard==nil or t.guard(e)) then  --TODO pcall?
           transited = true
-          active_trans[t] = true
+          active_trans[t] = e
           break
         end
       end
       --check if event is * and there is anything queued
       if not transited then -- priority down if already found listed event
-        local t = s.out_trans[M.EV_ANY]
-        if (t and next(evqueue)) and (t.guard==nil or t.guard()) then
+        local t = s.out_trans[EV_ANY]
+        local e = next(evqueue)
+        if (t and e) and (t.guard==nil or t.guard()) then
           transited = true
-          active_trans[t] = true
+          active_trans[t] = e
         end
       end
       --check timeouts
@@ -150,7 +156,7 @@ M.init = function ( root_s )
           local expiration = s.expiration
           if M.get_time()>expiration then 
             transited = true
-            active_trans[s.out_trans[EV_TIMEOUT]] = true
+            active_trans[s.out_trans[EV_TIMEOUT]] = EV_TIMEOUT
           else
             if expiration<next_expiration then
               next_expiration = expiration
@@ -167,11 +173,11 @@ M.init = function ( root_s )
     end
 
     --call leave_state, traverse transition, and enter_state
-    for t, _ in pairs(active_trans) do
+    for t, e in pairs(active_trans) do
       if current_states[t.src] then --src state could've been left
         idle = false
         exit_state(fsm, t.src)
-        if t.effect then t.effect() end --FIXME pcall
+        if t.effect then t.effect(e) end --FIXME pcall
         enter_state(fsm, t.tgt)
       end
       active_trans[t] = nil
@@ -185,15 +191,12 @@ M.init = function ( root_s )
           s.done = true
           idle = false -- let step again for new event
         elseif type(s.doo)=='function' then 
-          idle = false
-          local poll_flag = s.doo(fsm, s, 'doo') --TODO pcall
+          local poll_flag = s.doo(s) --TODO pcall
           if not poll_flag then 
             evqueue[s.EV_DONE] = true
             s.done = true
+            idle = false -- let step again for new EV_DONE event
           end
-          idle = false -- let step again for polling OR new EV_DONE event
-        elseif type(s.doo)=='coroutine' then 
-          error('tbi')
         end
       end
     end
