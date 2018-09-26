@@ -132,24 +132,27 @@ M.init = function ( root_s )
     --find active transitions
     for s, _ in pairs( current_states ) do
       local transited = false
+
       -- check for matching transitions for events
-      for e, _ in pairs(evqueue) do
-        local t = s.out_trans[e]
-        if t and (t.guard==nil or t.guard(e)) then  --TODO pcall?
-          transited = true
-          active_trans[t] = e
-          break
-        end
-      end
-      --check if event is * and there is anything queued
-      if not transited then -- priority down if already found listed event
-        local t = s.out_trans[EV_ANY]
-        local e = next(evqueue)
-        if (t and e) and (t.guard==nil or t.guard(e)) then
+      local e = next(evqueue)
+      if e then
+        local t = s.out_trans[EV_ANY] --if theres at least an event, serve *
+        if t and (t.guard==nil or t.guard(e)) then
           transited = true
           active_trans[t] = e
         end
+        if not transited then
+          repeat --iterate through events looking for a match, first already fed
+            local t = s.out_trans[e]
+            if t and (t.guard==nil or t.guard(e)) then
+              transited = true
+              active_trans[t] = e
+            end
+            e = next(evqueue, e)
+          until transited or e==nil
+        end
       end
+      
       --check timeouts
       if not transited then
         if s.out_trans[EV_TIMEOUT] then 
@@ -216,7 +219,7 @@ M.init = function ( root_s )
   fsm.send_event = function (ev)
     evqueue[ev] = true
   end
-  
+
   --- Step trough the hsm
   -- A single step will consume all pending events, and do a round evaluating
   -- available doo() functions on all active states. This call finishes as soon 
