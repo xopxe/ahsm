@@ -92,7 +92,7 @@ M.init = function ( root_s )
 
   local evqueue = {}
   local current_states = { [root_s.initial] = true }
-  local active_trans = {} --must be balenced (enter and leave step() empty)
+  local active_trans = {} --must be balanced (enter and leave step() empty)
 
   local function enter_state (fsm, s)
     if s.entry then s.entry(s) end
@@ -145,7 +145,7 @@ M.init = function ( root_s )
       if not transited then -- priority down if already found listed event
         local t = s.out_trans[EV_ANY]
         local e = next(evqueue)
-        if (t and e) and (t.guard==nil or t.guard()) then
+        if (t and e) and (t.guard==nil or t.guard(e)) then
           transited = true
           active_trans[t] = e
         end
