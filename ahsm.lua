@@ -10,28 +10,21 @@
 local M = {}
 
 local EV_ANY = {}
-local EV_TIMEOUT = {}
+local EV_TRUE = {}
 
 local function init ( composite )
   for _, s in pairs(composite.states) do
     s.out_trans = {}
     for _, t in pairs(composite.transitions) do
-      if t.src == s then 
-        for _, e in pairs(t.events) do
-          if s.out_trans[e] then 
-            print('WARN: multiple transitions from state on same event. Picking one.') 
-          end
-          s.out_trans[e] = t
-        end
-        --setup timeout
-        if t.timeout then 
-          if s.out_trans[EV_TIMEOUT] then 
-            print('WARN: multiple transitions w/timeout from same state. Picking first.')
-            if t.timeout<s.out_trans[EV_TIMEOUT].timeout then 
-              s.out_trans[EV_TIMEOUT] = t
+      if t.src == s then
+        if not t.events then
+          s.out_trans[EV_TRUE] = t
+        else
+          for _, e in pairs(t.events) do
+            if s.out_trans[e] then 
+              print('WARN: multiple transitions from state on same event. Picking one.') 
             end
-          else
-            s.out_trans[EV_TIMEOUT] = t
+            s.out_trans[e] = t
           end
         end
       end
@@ -74,11 +67,21 @@ end
 -- When used in the events field of a @{transition_s} will match any event.
 M.EV_ANY = EV_ANY --singleton, event matches any event
 
---- Used on timeouts
--- When the fsm must report a timeout (like as parameter for effect)
--- this value wll be used
-M.EV_TIMEOUT = EV_TIMEOUT
 
+M.get_timeout_guard = function( t )
+  local f = coroutine.wrap( function()
+      local expiration = M.get_time() + t
+      while true do
+        print('.', M.get_time() >= expiration, M.get_time() , expiration)
+        if M.get_time() >= expiration then
+          coroutine.yield(true)
+        else
+          coroutine.yield(false, expiration)
+        end
+      end
+    end )
+  return f
+end
 
 --- Create a hsm
 -- Constructs and initializes an hsm
@@ -92,15 +95,12 @@ M.init = function ( root_s )
 
   local evqueue = {}
   local current_states = { [root_s.initial] = true }
-  local active_trans = {} --must be balenced (enter and leave step() empty)
+  local active_trans = {} --must be balanced (enter and leave step() empty)
 
   local function enter_state (fsm, s)
     if s.entry then s.entry(s) end
     s.done = nil
     current_states[s] = true
-    if s.out_trans[EV_TIMEOUT] then 
-      s.expiration = M.get_time()+s.out_trans[EV_TIMEOUT].timeout
-    end
     if s.is_composite then
       enter_state(fsm, s.initial)
     end
@@ -145,22 +145,26 @@ M.init = function ( root_s )
       if not transited then -- priority down if already found listed event
         local t = s.out_trans[EV_ANY]
         local e = next(evqueue)
-        if (t and e) and (t.guard==nil or t.guard()) then
+        if (t and e) and (t.guard==nil or t.guard(e)) then
           transited = true
           active_trans[t] = e
         end
       end
-      --check timeouts
-      if not transited then
-        if s.out_trans[EV_TIMEOUT] then 
-          local expiration = s.expiration
-          if M.get_time()>expiration then 
-            transited = true
-            active_trans[s.out_trans[EV_TIMEOUT]] = EV_TIMEOUT
+      --check if anyone waiting on EV_TRUE (f.e. had not t.events)
+      if not transited then -- priority down
+        local t = s.out_trans[EV_TRUE]
+        if t then 
+          if t.guard then 
+            local guard_ret, guard_exp = t.guard(EV_TRUE) 
+            if guard_ret then
+              transited = true
+              active_trans[t] = EV_TRUE
+            else
+              idle = false
+            end          
           else
-            if expiration<next_expiration then
-              next_expiration = expiration
-            end
+            transited = true
+            active_trans[t] = EV_TRUE
           end
         end
       end
@@ -216,7 +220,7 @@ M.init = function ( root_s )
   fsm.send_event = function (ev)
     evqueue[ev] = true
   end
-  
+
   --- Step trough the hsm
   -- A single step will consume all pending events, and do a round evaluating
   -- available doo() functions on all active states. This call finishes as soon 
