@@ -4,7 +4,7 @@
 -- dependencies, and in a single file. Can be run on platforms as small as 
 -- a microcontroler.
 -- @module ahsm
--- @usage loca ahsm = require 'ahsm'
+-- @usage local ahsm = require 'ahsm'
 -- @alias M
 
 local M = {}
@@ -40,17 +40,18 @@ local function init ( composite )
   end
 end
 
---- Function used by the hsm to get current time.
+--- Function used by the fsm to get current time.
 -- Replace with whatever your app uses. Must return a number.
 -- Defaults to os.time.
 -- @function get_time
 M.get_time = os.time
 
---- Initialize a state
--- Converts a state specification into a state table. The state has a EV\_DONE
+--- Initialize a state.
+-- This is used to instantiate a new state from its specification. 
+-- The state has a EV\_DONE
 -- field which is an event triggered on state completion (finishing doo(), 
 -- etc.[TODO])
--- @param state_s state specificatios (see @{state_s}).
+-- @param s state specificatios (see @{state_s}).
 -- @return the initilized state
 M.state = function (s)
   s = s or {}
@@ -62,7 +63,7 @@ end
 
 --- Initialize a transition
 -- Converts a transition specification into a transition table.
--- @param transition_s transition specificatios (see @{transition_s} will match any event.).
+-- @param t transition specificatios (see @{transition_s} will match any event.).
 -- @return the initilized transition
 M.transition = function (t)
   t = t or {}
@@ -80,10 +81,10 @@ M.EV_ANY = EV_ANY --singleton, event matches any event
 M.EV_TIMEOUT = EV_TIMEOUT
 
 
---- Create a hsm
--- Constructs and initializes an hsm
+--- Create a fsm
+-- Constructs and initializes an fsm
 -- @param root_s the root state
--- @return inialized hsm
+-- @return inialized fsm
 M.init = function ( root_s )
   local fsm = { 
     get_events = nil, --function () end,
@@ -145,7 +146,7 @@ M.init = function ( root_s )
       if not transited then -- priority down if already found listed event
         local t = s.out_trans[EV_ANY]
         local e = next(evqueue)
-        if (t and e) and (t.guard==nil or t.guard(e)) then
+        if (t and e~=nil) and (t.guard==nil or t.guard(e)) then
           transited = true
           active_trans[t] = e
         end
@@ -209,18 +210,18 @@ M.init = function ( root_s )
   end
 
   --- Queue new event.
-  -- Add an event to the event list. All events added before running the hsm
+  -- Add an event to the event list. All events added before running the fsm
   -- using step() or loop() are considered simultaneous, and the order in which 
   -- they are processed is undetermined.
-  -- @param an event
+  -- @param ev an event. Can be of any type except nil.
   fsm.send_event = function (ev)
     evqueue[ev] = true
   end
   
-  --- Step trough the hsm
+  --- Step trough the fsm
   -- A single step will consume all pending events, and do a round evaluating
   -- available doo() functions on all active states. This call finishes as soon 
-  -- as the cycle count is reached or the hsm becomes idle.
+  -- as the cycle count is reached or the fsm becomes idle.
   -- @ param count maximum number of cycles to perform. Defaults to 1
   -- @return the idle status, and the next impending expiration time if 
   -- available. Being idle means that all events have been consumed and no 
@@ -235,7 +236,7 @@ M.init = function ( root_s )
     return false
   end
 
-  --- Loop trough the hsm
+  --- Loop trough the fsm
   -- Will step the machine until it becomes idle. When this call returns means
   -- there's no actions to be taken immediatelly.
   -- @return expiration time if available, or the time the cloests timeout
@@ -250,6 +251,40 @@ M.init = function ( root_s )
 
   return fsm
 end
+
+
+--- Data structures.
+-- Main structures used.
+-- @section structures
+
+------
+-- Transition specification
+-- State specification
+-- @field entry
+-- @field exit
+-- @field doo
+-- @field states
+-- @field transitions
+-- @field initial
+-- @table state_s
+
+------
+-- Transition specification
+-- @field src source state.
+-- @field dst destination state.
+-- @field events table where the values are the events that trigger the 
+-- transition. Can be supressed by the guard function
+-- @field guard if provided, when the transition is triggered this function 
+-- will be evaluated with the event as parameter. If returns a true value the 
+-- transition is made.
+-- @field effect this funcion of transition traversal, with the triggering 
+-- event as parameter.
+-- @field timeout If provided, this number is used as timeout for time traversal.
+-- After timeout time units spent in the souce state the transition will be
+-- triggered with the @{EV_TIMEOUT} event as parameter. Uses the @{get_time}
+-- to read the system's time.
+-- @table transition_s
+
 
 
 return M
