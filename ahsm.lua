@@ -95,15 +95,15 @@ M.init = function ( root_s )
   local current_states = { [root_s.initial] = true }
   local active_trans = {} --must be balanced (enter and leave step() empty)
 
-  local function enter_state (fsm, s)
+  local function enter_state (fsm, s, now)
     if s.entry then s.entry(s) end
     s.done = nil
     current_states[s] = true
     if s.out_trans[EV_TIMEOUT] then 
-      s.expiration = M.get_time()+s.out_trans[EV_TIMEOUT].timeout
+      s.expiration = now+s.out_trans[EV_TIMEOUT].timeout
     end
     if s.is_composite then
-      enter_state(fsm, s.initial)
+      enter_state(fsm, s.initial, now)
     end
   end
 
@@ -119,11 +119,12 @@ M.init = function ( root_s )
     end
   end
 
-  enter_state (fsm, root_s.initial)
+  enter_state (fsm, root_s.initial, M.get_time())
 
   local function step ()
     local idle = true
     local next_expiration = math.huge
+    local now = M.get_time()
 
     --queue new events
     if fsm.get_events then 
@@ -155,7 +156,7 @@ M.init = function ( root_s )
       if not transited then
         if s.out_trans[EV_TIMEOUT] then 
           local expiration = s.expiration
-          if M.get_time()>expiration then 
+          if now>expiration then 
             transited = true
             active_trans[s.out_trans[EV_TIMEOUT]] = EV_TIMEOUT
           else
@@ -179,7 +180,7 @@ M.init = function ( root_s )
         idle = false
         exit_state(fsm, t.src)
         if t.effect then t.effect(e) end --FIXME pcall
-        enter_state(fsm, t.tgt)
+        enter_state(fsm, t.tgt, now)
       end
       active_trans[t] = nil
     end
@@ -217,7 +218,7 @@ M.init = function ( root_s )
   fsm.send_event = function (ev)
     evqueue[ev] = true
   end
-  
+
   --- Step trough the fsm
   -- A single step will consume all pending events, and do a round evaluating
   -- available doo() functions on all active states. This call finishes as soon 
@@ -260,8 +261,8 @@ end
 ------
 -- Transition specification
 -- State specification
--- @field entry
--- @field exit
+-- @field entry an optional function to be called on entering the state.
+-- @field exit an optional function to be called on leaving the state.
 -- @field doo
 -- @field states
 -- @field transitions
