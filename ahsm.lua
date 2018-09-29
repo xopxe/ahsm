@@ -55,9 +55,7 @@ M.get_time = os.time
 -- @return the initilized state
 M.state = function (s)
   s = s or {}
-  s.fsmtype = 'state'
   s.EV_DONE = {} --singleton, trigered on state completion
-  s.is_composite = s.states
   return s
 end
 
@@ -67,8 +65,7 @@ end
 -- @return the initilized transition
 M.transition = function (transition_s)
   transition_s = transition_s or {}
-  transition_s.fsmtype = 'transition'
-  return t
+  return transition_s
 end
 
 --- When used in the events field of a @{transition_s} will match any event.
@@ -99,7 +96,7 @@ M.init = function ( root_s )
     if s.out_trans[EV_TIMEOUT] then 
       s.expiration = now+s.out_trans[EV_TIMEOUT].timeout
     end
-    if s.is_composite then
+    if s.initial then
       enter_state(fsm, s.initial, now)
     end
   end
