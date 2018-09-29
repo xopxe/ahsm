@@ -61,27 +61,24 @@ M.state = function (s)
   return s
 end
 
---- Initialize a transition
+--- Initialize a transition.
 -- Converts a transition specification into a transition table.
--- @param t transition specificatios (see @{transition_s} will match any event.).
+-- @param transition_s transition specificatios (see @{transition_s}).
 -- @return the initilized transition
-M.transition = function (t)
-  t = t or {}
-  t.fsmtype = 'transition'
+M.transition = function (transition_s)
+  transition_s = transition_s or {}
+  transition_s.fsmtype = 'transition'
   return t
 end
 
---- Match all events
--- When used in the events field of a @{transition_s} will match any event.
+--- When used in the events field of a @{transition_s} will match any event.
 M.EV_ANY = EV_ANY --singleton, event matches any event
 
---- Used on timeouts
--- When the fsm must report a timeout (like as parameter for effect)
--- this value wll be used
+--- Event reported to `effect()` when a transition is made due to a timeout. 
 M.EV_TIMEOUT = EV_TIMEOUT
 
 
---- Create a fsm
+--- Create a fsm.
 -- Constructs and initializes an fsm
 -- @param root_s the root state
 -- @return inialized fsm
@@ -219,7 +216,7 @@ M.init = function ( root_s )
     evqueue[ev] = true
   end
 
-  --- Step trough the fsm
+  --- Step trough the fsm.
   -- A single step will consume all pending events, and do a round evaluating
   -- available doo() functions on all active states. This call finishes as soon 
   -- as the cycle count is reached or the fsm becomes idle.
@@ -237,11 +234,11 @@ M.init = function ( root_s )
     return false
   end
 
-  --- Loop trough the fsm
+  --- Loop trough the fsm.
   -- Will step the machine until it becomes idle. When this call returns means
   -- there's no actions to be taken immediatelly.
-  -- @return expiration time if available, or the time the cloests timeout
-  -- on a ready transition is to trigger
+  -- @return expiration time if available, or the time the closests timeout
+  -- on a transition to trigger
   fsm.loop = function ()
     local idle, expiration 
     repeat
@@ -255,22 +252,32 @@ end
 
 
 --- Data structures.
--- Main structures used.
+-- Main structures used to describe a fsm.
 -- @section structures
 
 ------
--- Transition specification
--- State specification
+-- State specification.
+-- A state can be either leaf or composite. A composite state has a fsm 
+-- embedded, defined by the `states`, `transitions` and `initial` fields. When a
+-- compodite state is activated the embedded fsm is started from the `initial`
+-- state. The activity of a state must be provided in the `entry`, `exit` and `doo` 
+-- fields.
 -- @field entry an optional function to be called on entering the state.
 -- @field exit an optional function to be called on leaving the state.
--- @field doo
--- @field states
--- @field transitions
--- @field initial
+-- @field doo an optional function that will be called when the state is 
+-- active. If this function returns true, it will be polled again. If returns 
+-- false, it is considered as completed.
+-- @field EV_DONE This an event emitted when the `doo()` function is completed, or 
+-- immediatelly if no `doo()` function is provided.
+-- @field states When the state is a composite this table's values are the 
+-- states of the embedded fsm. Keys can be used to provide a name.
+-- @field transitions When the state is a composite this table's values are the 
+-- transitions of the embedded fsm. Keys can be used to provide a name.
+-- @field initial This is the initial state of the embedded fsm in a composite.
 -- @table state_s
 
 ------
--- Transition specification
+-- Transition specification.
 -- @field src source state.
 -- @field dst destination state.
 -- @field events table where the values are the events that trigger the 
@@ -280,10 +287,10 @@ end
 -- transition is made.
 -- @field effect this funcion of transition traversal, with the triggering 
 -- event as parameter.
--- @field timeout If provided, this number is used as timeout for time traversal.
--- After timeout time units spent in the souce state the transition will be
--- triggered with the @{EV_TIMEOUT} event as parameter. Uses the @{get_time}
--- to read the system's time.
+-- @field timeout If provided, this number is used as timeout for time 
+-- traversal. After timeout time units spent in the souce state the transition 
+-- will be triggered with the @{EV_TIMEOUT} event as parameter. Uses the 
+-- @{get_time} to read the system's time.
 -- @table transition_s
 
 

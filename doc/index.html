@@ -69,14 +69,12 @@
 	<td class="summary">Initialize a state.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#transition">transition (t)</a></td>
-	<td class="summary">Initialize a transition
- Converts a transition specification into a transition table.</td>
+	<td class="name" nowrap><a href="#transition">transition (transition_s)</a></td>
+	<td class="summary">Initialize a transition.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#init">init (root_s)</a></td>
-	<td class="summary">Create a fsm
- Constructs and initializes an fsm</td>
+	<td class="summary">Create a fsm.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#fsm.send_event">fsm.send_event (ev)</a></td>
@@ -84,40 +82,33 @@
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#fsm.step">fsm.step (count)</a></td>
-	<td class="summary">Step trough the fsm
- A single step will consume all pending events, and do a round evaluating
- available doo() functions on all active states.</td>
+	<td class="summary">Step trough the fsm.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#fsm.loop">fsm.loop ()</a></td>
-	<td class="summary">Loop trough the fsm
- Will step the machine until it becomes idle.</td>
+	<td class="summary">Loop trough the fsm.</td>
 	</tr>
 </table>
 <h2><a href="#Fields">Fields</a></h2>
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#EV_ANY">EV_ANY</a></td>
-	<td class="summary">Match all events
- When used in the events field of a <a href="index.html#transition_s">transition_s</a> will match any event.</td>
+	<td class="summary">When used in the events field of a <a href="index.html#transition_s">transition_s</a> will match any event.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#EV_TIMEOUT">EV_TIMEOUT</a></td>
-	<td class="summary">Used on timeouts
- When the fsm must report a timeout (like as parameter for effect)
- this value wll be used</td>
+	<td class="summary">Event reported to <code>effect()</code> when a transition is made due to a timeout.</td>
 	</tr>
 </table>
 <h2><a href="#Data_structures">Data structures </a></h2>
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#state_s">state_s</a></td>
-	<td class="summary">Transition specification
- State specification</td>
+	<td class="summary">State specification.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#transition_s">transition_s</a></td>
-	<td class="summary">Transition specification</td>
+	<td class="summary">Transition specification.</td>
 	</tr>
 </table>
 
@@ -151,7 +142,7 @@
     <dd>
     Initialize a state.
  This is used to instantiate a new state from its specification.
- The state has a EV\_DONE
+ The state has a EV_DONE
  field which is an event triggered on state completion (finishing doo(),
  etc.[TODO])
 
@@ -175,17 +166,17 @@
 </dd>
     <dt>
     <a name = "transition"></a>
-    <strong>transition (t)</strong>
+    <strong>transition (transition_s)</strong>
     </dt>
     <dd>
-    Initialize a transition
+    Initialize a transition.
  Converts a transition specification into a transition table.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">t</span>
-         transition specificatios (see <a href="index.html#transition_s">transition_s</a> will match any event.).
+        <li><span class="parameter">transition_s</span>
+         transition specificatios (see <a href="index.html#transition_s">transition_s</a>).
         </li>
     </ul>
 
@@ -204,7 +195,7 @@
     <strong>init (root_s)</strong>
     </dt>
     <dd>
-    Create a fsm
+    Create a fsm.
  Constructs and initializes an fsm
 
 
@@ -253,9 +244,9 @@
     <strong>fsm.step (count)</strong>
     </dt>
     <dd>
-    Step trough the fsm
+    Step trough the fsm.
  A single step will consume all pending events, and do a round evaluating
- available doo() functions on all active states.  This call finishes as soon
+ available doo() functions on all active states. This call finishes as soon
  as the cycle count is reached or the fsm becomes idle.
  @ param count maximum number of cycles to perform. Defaults to 1
 
@@ -263,6 +254,8 @@
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">count</span>
+
+
 
         </li>
     </ul>
@@ -285,8 +278,8 @@
     <strong>fsm.loop ()</strong>
     </dt>
     <dd>
-    Loop trough the fsm
- Will step the machine until it becomes idle.  When this call returns means
+    Loop trough the fsm.
+ Will step the machine until it becomes idle. When this call returns means
  there's no actions to be taken immediatelly.
 
 
@@ -311,8 +304,7 @@
     <strong>EV_ANY</strong>
     </dt>
     <dd>
-    Match all events
- When used in the events field of a <a href="index.html#transition_s">transition_s</a> will match any event.
+    When used in the events field of a <a href="index.html#transition_s">transition_s</a> will match any event.
 
 
 
@@ -326,9 +318,7 @@
     <strong>EV_TIMEOUT</strong>
     </dt>
     <dd>
-    Used on timeouts
- When the fsm must report a timeout (like as parameter for effect)
- this value wll be used
+    Event reported to <code>effect()</code> when a transition is made due to a timeout.
 
 
 
@@ -341,8 +331,7 @@
     <h2 class="section-header has-description"><a name="Data_structures"></a>Data structures </h2>
 
           <div class="section-description">
-
- Main structures used.
+           Main structures used to describe a fsm.
           </div>
     <dl class="function">
     <dt>
@@ -350,29 +339,41 @@
     <strong>state_s</strong>
     </dt>
     <dd>
-    Transition specification
- State specification
+    State specification.
+ A state can be either leaf or composite. A composite state has a fsm
+ embedded, defined by the <code>states</code>, <code>transitions</code> and <code>initial</code> fields. When a
+ compodite state is activated the embedded fsm is started from the <code>initial</code>
+ state. The activity of a state must be provided in the <code>entry</code>, <code>exit</code> and <code>doo</code>
+ fields.
 
 
     <h3>Fields:</h3>
     <ul>
         <li><span class="parameter">entry</span>
-
+         an optional function to be called on entering the state.
         </li>
         <li><span class="parameter">exit</span>
-
+         an optional function to be called on leaving the state.
         </li>
         <li><span class="parameter">doo</span>
-
+         an optional function that will be called when the state is
+ active. If this function returns true, it will be polled again. If returns
+ false, it is considered as completed.
+        </li>
+        <li><span class="parameter">EV_DONE</span>
+         This an event emitted when the <code>doo()</code> function is completed, or
+ immediatelly if no <code>doo()</code> function is provided.
         </li>
         <li><span class="parameter">states</span>
-
+         When the state is a composite this table's values are the
+ states of the embedded fsm. Keys can be used to provide a name.
         </li>
         <li><span class="parameter">transitions</span>
-
+         When the state is a composite this table's values are the
+ transitions of the embedded fsm. Keys can be used to provide a name.
         </li>
         <li><span class="parameter">initial</span>
-
+         This is the initial state of the embedded fsm in a composite.
         </li>
     </ul>
 
@@ -386,7 +387,7 @@
     <strong>transition_s</strong>
     </dt>
     <dd>
-    Transition specification
+    Transition specification.
 
 
     <h3>Fields:</h3>
@@ -411,10 +412,10 @@
  event as parameter.
         </li>
         <li><span class="parameter">timeout</span>
-         If provided, this number is used as timeout for time traversal.
- After timeout time units spent in the souce state the transition will be
- triggered with the <a href="index.html#EV_TIMEOUT">EV_TIMEOUT</a> event as parameter. Uses the <a href="index.html#get_time">get_time</a>
- to read the system's time.
+         If provided, this number is used as timeout for time
+ traversal. After timeout time units spent in the souce state the transition
+ will be triggered with the <a href="index.html#EV_TIMEOUT">EV_TIMEOUT</a> event as parameter. Uses the
+ <a href="index.html#get_time">get_time</a> to read the system's time.
         </li>
     </ul>
 
@@ -430,7 +431,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-09-28 00:57:09 </i>
+<i style="float:right;">Last updated 2018-09-29 19:21:28 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
