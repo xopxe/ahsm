@@ -80,7 +80,13 @@ M.EV_TIMEOUT = EV_TIMEOUT
 -- @return inialized fsm
 M.init = function ( root_s )
   local fsm = { 
-    get_events = nil, --function () end,
+    --- Callback for pulling events.
+    -- If provided, this function will be called from inside the `step` call
+    -- so new events can be queued. All events in the queue are considered 
+    -- simultaneous, and the order in which they are processed is undetermined.
+    -- @param evqueue a set were new events can be placed.
+    -- @function fsm.get_events
+    get_events = nil, --function (evqueue) end,
   }
   init( root_s )
 
@@ -203,7 +209,7 @@ M.init = function ( root_s )
     return idle, next_expiration
   end
 
-  --- Queue new event.
+  --- Push new event to the queue.
   -- All events added before running the fsm using step() or loop() are 
   -- considered simultaneous, and the order in which they are processed 
   -- is undetermined.
