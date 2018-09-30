@@ -1,4 +1,4 @@
---- ahsm Hierarchical State Machine
+--- ahsm Hierarchical State Machine.
 -- ahsm is a very small implementation of Hierararchical State Machines,
 -- also known as Statecharts. It's written in Lua, with no external 
 -- dependencies, and in a single file. Can be run on platforms as small as 
@@ -47,16 +47,15 @@ end
 M.get_time = os.time
 
 --- Initialize a state.
--- This is used to instantiate a new state from its specification. 
--- The state has a EV\_DONE
--- field which is an event triggered on state completion (finishing doo(), 
--- etc.[TODO])
--- @param s state specificatios (see @{state_s}).
+-- Converts a state specfification into a state. 
+-- The state has a EV\_DONE field which is an event triggered on state
+-- completion.
+-- @param state_s state specificatios (see @{state_s}).
 -- @return the initilized state
-M.state = function (s)
-  s = s or {}
-  s.EV_DONE = {} --singleton, trigered on state completion
-  return s
+M.state = function (state_s)
+  state_s = state_s or {}
+  state_s.EV_DONE = {} --singleton, trigered on state completion
+  return state_s
 end
 
 --- Initialize a transition.
@@ -68,7 +67,7 @@ M.transition = function (transition_s)
   return transition_s
 end
 
---- When used in the events field of a @{transition_s} will match any event.
+--- When used in the `events` field of a @{transition_s} will match any event.
 M.EV_ANY = EV_ANY --singleton, event matches any event
 
 --- Event reported to `effect()` when a transition is made due to a timeout. 
@@ -76,8 +75,8 @@ M.EV_TIMEOUT = EV_TIMEOUT
 
 
 --- Create a fsm.
--- Constructs and initializes an fsm
--- @param root_s the root state
+-- Constructs and initializes an fsm from a root state.
+-- @param root_s the root state, must be a composite.
 -- @return inialized fsm
 M.init = function ( root_s )
   local fsm = { 
@@ -205,9 +204,9 @@ M.init = function ( root_s )
   end
 
   --- Queue new event.
-  -- Add an event to the event list. All events added before running the fsm
-  -- using step() or loop() are considered simultaneous, and the order in which 
-  -- they are processed is undetermined.
+  -- All events added before running the fsm using step() or loop() are 
+  -- considered simultaneous, and the order in which they are processed 
+  -- is undetermined.
   -- @param ev an event. Can be of any type except nil.
   fsm.send_event = function (ev)
     evqueue[ev] = true
@@ -217,10 +216,10 @@ M.init = function ( root_s )
   -- A single step will consume all pending events, and do a round evaluating
   -- available doo() functions on all active states. This call finishes as soon 
   -- as the cycle count is reached or the fsm becomes idle.
-  -- @ param count maximum number of cycles to perform. Defaults to 1
+  -- @param count maximum number of cycles to perform. Defaults to 1
   -- @return the idle status, and the next impending expiration time if 
   -- available. Being idle means that all events have been consumed and no 
-  -- doo() function is available to be run. The expiration time indicates there 
+  -- doo() function is pending to be run. The expiration time indicates there 
   -- is a transition with timeout waiting.
   fsm.step = function ( count )
     count = count or 1
@@ -262,15 +261,16 @@ end
 -- @field entry an optional function to be called on entering the state.
 -- @field exit an optional function to be called on leaving the state.
 -- @field doo an optional function that will be called when the state is 
--- active. If this function returns true, it will be polled again. If returns 
--- false, it is considered as completed.
--- @field EV_DONE This an event emitted when the `doo()` function is completed, or 
--- immediatelly if no `doo()` function is provided.
+-- active. If this function returns true, it will be polled again. If
+-- returns false, it is considered as completed.
+-- @field EV_DONE This field is created when calling @{state}, and is an
+-- event emitted when the `doo()` function is completed, or immediatelly if 
+-- no `doo()` function is provided.
 -- @field states When the state is a composite this table's values are the 
 -- states of the embedded fsm. Keys can be used to provide a name.
--- @field transitions When the state is a composite this table's values are the 
--- transitions of the embedded fsm. Keys can be used to provide a name.
--- @field initial This is the initial state of the embedded fsm in a composite.
+-- @field transitions When the state is a composite this table's values are
+-- the transitions of the embedded fsm. Keys can be used to provide a name.
+-- @field initial This is the initial state of the embedded.
 -- @table state_s
 
 ------
@@ -280,8 +280,8 @@ end
 -- @field events table where the values are the events that trigger the 
 -- transition. Can be supressed by the guard function
 -- @field guard if provided, when the transition is triggered this function 
--- will be evaluated with the event as parameter. If returns a true value the 
--- transition is made.
+-- will be evaluated with the event as parameter. If returns a true value
+-- the transition is made.
 -- @field effect this funcion of transition traversal, with the triggering 
 -- event as parameter.
 -- @field timeout If provided, this number is used as timeout for time 
