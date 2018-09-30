@@ -1,28 +1,9 @@
 local ahsm = require 'ahsm'
 
-local hello_s = ahsm.state { exit=function () print "> hello" end } --state with exit func
-local world_s = ahsm.state { entry=function () print "> world" end } --state with entry func
-local t11 = ahsm.transition { src=hello_s, tgt=world_s, events={hello_s.EV_DONE} } --transition on state completion
-local t12 = ahsm.transition { src=world_s, tgt=hello_s, events={'e_restart'}, timeout=2.0} --transition with timeout, event is a string
-
-local a = 0
-local helloworld_s = ahsm.state {
-  states = { hello=hello_s, world=world_s }, --composite state
-  transitions = { t11, t12 },
-  initial = hello_s, --initial state for machine
-  doo = coroutine.wrap( function () -- a long running doo with yields
-    while true do
-      a = a + 1
-      coroutine.yield(true)
-      a = a + 1
-    end
-  end ),
-  exit = function () print('!', a) end,  -- will show efect of doo on exit
-}
---]]
+local helloworld_s = require 'helloworld' -- load a fsm from a library
 
 local off_s = ahsm.state { 
-  entry = function () print "> off" end,
+  entry = function () print "TEST STATE off" end,
   doo = function () --[[return true]] end, --single shot doo function, uncomment return for polling
 }
 local e_on = {}
@@ -31,9 +12,19 @@ local t21 = ahsm.transition {
   tgt=helloworld_s, --target is a composite state, will start it
   events={e_on},  --event is an object
   guard = function (e) return true end,  --guard function
-  effect = function (e) end,  --function called on transition
+  effect = function (e) --function called on transition
+    print ('TEST switching on', os.time()) 
+  end,  
 }
-local t22 = ahsm.transition { src=helloworld_s, tgt=off_s, events={'e_off'}, timeout=7.0}
+local t22 = ahsm.transition { 
+  src=helloworld_s, 
+  tgt=off_s, 
+  events={'e_off'}, 
+  timeout=7.0,
+  effect = function (e) --function called on transition
+    print ('TEST switching off', os.time(), 'timeout:'..tostring(e==ahsm.EV_TIMEOUT)) 
+  end,  
+}
 
 local composite_s = ahsm.state {
   states = { off=off_s, helloworld=helloworld_s },
@@ -45,22 +36,19 @@ local composite_s = ahsm.state {
 local fsm = ahsm.init( composite_s )  -- create fsm from root composite state
 
 local function send(e)
-  print('<', e)
+  print('TEST sending event', e)
   fsm.send_event(e)
 end
 local function loop(e)
   print( '===', fsm.loop()  )
 end
 
-loop()
-send('e_restart')
-loop()
 send(e_on)
-loop()
+fsm.loop()
 send('e_restart')
-loop()
+fsm.loop()
 send('e_off')
-loop()
+fsm.loop()
 send(e_on)
-loop()
+fsm.loop()
 while fsm.loop() do end
