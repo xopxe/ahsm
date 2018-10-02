@@ -15,9 +15,9 @@ local EV_TIMEOUT = {}
 local function init ( composite )
   for _, s in pairs(composite.states) do
     s.out_trans = {}
-    for _, t in pairs(composite.transitions) do
+    for _, t in pairs(composite.transitions or {}) do
       if t.src == s then 
-        for _, e in pairs(t.events) do
+        for _, e in pairs(t.events or {}) do
           if s.out_trans[e] then 
             print('WARN: multiple transitions from state on same event. Picking one.') 
           end
@@ -63,6 +63,8 @@ end
 -- @param transition_s transition specificatios (see @{transition_s}).
 -- @return the initilized transition
 M.transition = function (transition_s)
+  assert(transition_s.src, 'missing source state in transition')
+  assert(transition_s.tgt, 'missing target state in transition')
   transition_s = transition_s or {}
   return transition_s
 end
