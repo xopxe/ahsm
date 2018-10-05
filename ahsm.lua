@@ -14,7 +14,7 @@ local EV_TIMEOUT = {}
 
 local function init ( composite )
   for _, s in pairs(composite.states) do
-    s.out_trans = {}
+    s.out_trans = s.out_trans or {}
     for _, t in pairs(composite.transitions or {}) do
       if t.src == s then 
         for _, e in pairs(t.events or {}) do
@@ -22,17 +22,6 @@ local function init ( composite )
             print('WARN: multiple transitions from state on same event. Picking one.') 
           end
           s.out_trans[e] = t
-        end
-        --setup timeout
-        if t.timeout then 
-          if s.out_trans[EV_TIMEOUT] then 
-            print('WARN: multiple transitions w/timeout from same state. Picking first.')
-            if t.timeout<s.out_trans[EV_TIMEOUT].timeout then 
-              s.out_trans[EV_TIMEOUT] = t
-            end
-          else
-            s.out_trans[EV_TIMEOUT] = t
-          end
         end
       end
     end
@@ -55,17 +44,55 @@ M.get_time = os.time
 M.state = function (state_s)
   state_s = state_s or {}
   state_s.EV_DONE = {} --singleton, trigered on state completion
+  state_s.out_trans = {}
   return state_s
 end
+
+local to_key = {}
+local mt_transition = {
+  __index = function (t, k)
+    if k=='timeout' then
+      return rawget(t, to_key)
+    else
+      return rawget(t, k)
+    end
+  end,
+  __newindex = function(t, k, v)
+    if k=='timeout' then
+      local src = t.src
+      local curr_to_trans = src.out_trans[EV_TIMEOUT]
+      if v ~= nil then
+        if curr_to_trans and t~=curr_to_trans then 
+          print('WARN: multiple transitions w/timeout from same state. Picking first.')
+          if v<curr_to_trans.timeout then 
+            src.out_trans[EV_TIMEOUT] = t
+          end
+        else
+          src.out_trans[EV_TIMEOUT] = t
+        end
+      elseif curr_to_trans == t then 
+        src.out_trans[EV_TIMEOUT] = nil
+      end
+      rawset(t, to_key, v)
+    else
+      rawset(t, k, v)
+    end
+  end
+}
 
 --- Initialize a transition.
 -- Converts a transition specification into a transition table.
 -- @param transition_s transition specificatios (see @{transition_s}).
 -- @return the initilized transition
 M.transition = function (transition_s)
+  transition_s = transition_s or {}
   assert(transition_s.src, 'missing source state in transition')
   assert(transition_s.tgt, 'missing target state in transition')
-  transition_s = transition_s or {}
+
+  local timeout = transition_s.timeout
+  transition_s.timeout = nil
+  setmetatable(transition_s, mt_transition)
+  transition_s.timeout = timeout
   return transition_s
 end
 
