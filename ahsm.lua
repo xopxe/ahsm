@@ -15,6 +15,7 @@ local EV_TIMEOUT = {}
 local function init ( composite )
   for _, s in pairs(composite.states) do
     s.out_trans = s.out_trans or {}
+    s.container = composite
     for _, t in pairs(composite.transitions or {}) do
       if t.src == s then 
         for _, e in pairs(t.events or {}) do
@@ -125,6 +126,7 @@ M.init = function ( root_s )
 
   local function enter_state (fsm, s, now)
     if s.entry then s.entry(s) end
+    s.container.current_substate = s
     s.done = nil
     current_states[s] = true
     if s.out_trans[EV_TIMEOUT] then 
@@ -138,12 +140,8 @@ M.init = function ( root_s )
   local function exit_state (fsm, s, dont_call)
     if (not dont_call) and s.exit then s.exit(s) end
     current_states[s] = nil
-    if s.states then --substates, is composite
-      for _, sub_s in pairs(s.states) do
-        if (current_states[sub_s]) then
-          exit_state (fsm, sub_s, true) --FIXME call or not call?
-        end
-      end
+    if s.current_substate then 
+      exit_state (fsm, s.current_substate, true) --FIXME call or not call?
     end
   end
 
