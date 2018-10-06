@@ -28,8 +28,8 @@ local t22 = ahsm.transition {
 
 local composite_s = ahsm.state {
   events = {e_on=e_on} , -- publish events
-  states = { off=off_s, helloworld=helloworld_s },
-  transitions = { ON=t21, OFF=t22 },
+  states = { off=off_s, helloworld=helloworld_s },--can provide names to states
+  transitions = { ON=t21, OFF=t22 }, --can provide names to transitions
   initial = off_s,
 }
 

@@ -10,7 +10,7 @@ local t12 = ahsm.transition { src=world_s, tgt=hello_s, events={'e_restart'}, ti
 local a = 0
 local helloworld_s = ahsm.state {
   states = { hello=hello_s, world=world_s }, --composite state
-  transitions = { DONE=t11, RESTART=t12 },
+  transitions = { t11, t12 },
   initial = hello_s, --initial state for machine
   doo = coroutine.wrap( function () -- a long running doo with yields
     while true do
