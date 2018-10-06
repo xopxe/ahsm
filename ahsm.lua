@@ -60,19 +60,19 @@ local mt_transition = {
   end,
   __newindex = function(t, k, v)
     if k=='timeout' then
-      local src = t.src
-      local curr_to_trans = src.out_trans[EV_TIMEOUT]
+      local src_out_trans = t.src.out_trans
+      local src_timout_trans = src_out_trans[EV_TIMEOUT]
       if v ~= nil then
-        if curr_to_trans and t~=curr_to_trans then 
+        if src_timout_trans and t~=src_timout_trans then 
           print('WARN: multiple transitions w/timeout from same state. Picking first.')
-          if v<curr_to_trans.timeout then 
-            src.out_trans[EV_TIMEOUT] = t
+          if v<src_timout_trans.timeout then 
+            src_out_trans[EV_TIMEOUT] = t
           end
         else
-          src.out_trans[EV_TIMEOUT] = t
+          src_out_trans[EV_TIMEOUT] = t
         end
-      elseif curr_to_trans == t then 
-        src.out_trans[EV_TIMEOUT] = nil
+      elseif src_timout_trans == t then 
+        src_out_trans[EV_TIMEOUT] = nil
       end
       rawset(t, to_key, v)
     else
