@@ -5,7 +5,8 @@ local ahsm = require 'ahsm'
 local filename = arg[1]
 
 if not filename then
-  io.stderr( 'syntax: lua run.lua <fsm.lua>' )
+  io.stderr:write( 'syntax:\n  lua run.lua <fsm.lua>\n' )
+  os.exit()
 end
 
 local root = assert(dofile(filename))
