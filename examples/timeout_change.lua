@@ -1,5 +1,5 @@
 --look for packages one folder up.
-package.path = package.path .. ";;;../../?.lua;../../?/init.lua"
+--package.path = package.path .. ";;;../../?.lua;../../?/init.lua"
 
 local ahsm = require 'ahsm'
 
@@ -12,7 +12,6 @@ local s3 = ahsm.state { entry = function() print('END', ahsm.get_time()) end }
 local t12 = ahsm.transition {
   src = s1,
   tgt = s2,
-  --events = {'END_E'},
   timeout = 1.0,
 }
 local t13 = ahsm.transition {
@@ -29,6 +28,7 @@ local t21 = ahsm.transition {
     if t12.timeout < 5 then 
       t12.timeout = t12.timeout+1 
     else
+      --t12.timeout = nil
       fsm.send_event('END_E')
     end
   end, 
