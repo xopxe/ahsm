@@ -7,6 +7,9 @@
 -- @usage local ahsm = require 'ahsm'
 -- @alias M
 
+local pairs, type = pairs, type
+local math_huge = math.huge
+
 local M = {}
 
 local EV_ANY = {}
@@ -149,7 +152,7 @@ M.init = function ( root_s )
 
   local function step ()
     local idle = true
-    local next_expiration = math.huge
+    local next_expiration = math_huge
     local now = M.get_time()
 
     --queue new events
@@ -229,7 +232,7 @@ M.init = function ( root_s )
       end
     end
 
-    if next_expiration==math.huge then
+    if next_expiration==math_huge then
       next_expiration = nil
     end
 
