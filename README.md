@@ -205,7 +205,7 @@ end
 
 ## License
 
-Same as Lua, see COPYRIGHT.
+Same as Lua, see LICENSE.
 
 
 ## Who?
