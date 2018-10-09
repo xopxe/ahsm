@@ -17,7 +17,6 @@ local EV_TIMEOUT = {}
 
 local function init ( composite )
   for _, s in pairs(composite.states) do
-    s.out_trans = s.out_trans or {}
     s.container = composite
     for _, t in pairs(composite.transitions or {}) do
       if t.src == s then 
@@ -33,7 +32,7 @@ local function init ( composite )
   end
 end
 
---- Function used by the fsm to get current time.
+--- Function used by the hsm to get current time.
 -- Replace with whatever your app uses. Must return a number.
 -- Defaults to os.time.
 -- @function get_time
@@ -107,27 +106,29 @@ M.EV_ANY = EV_ANY --singleton, event matches any event
 M.EV_TIMEOUT = EV_TIMEOUT
 
 
---- Create a fsm.
--- Constructs and initializes an fsm from a root state.
+--- Create a hsm.
+-- Constructs and initializes an hsm from a root state.
 -- @param root_s the root state, must be a composite.
--- @return inialized fsm
+-- @return inialized hsm
 M.init = function ( root_s )
-  local fsm = { 
+  local hsm = { 
     --- Callback for pulling events.
     -- If provided, this function will be called from inside the `step` call
     -- so new events can be queued. All events in the queue are considered 
     -- simultaneous, and the order in which they are processed is undetermined.
     -- @param evqueue a set were new events can be placed.
-    -- @function fsm.get_events
+    -- @function hsm.get_events
     get_events = nil, --function (evqueue) end,
   }
   init( root_s )
+  
+  root_s.container = {} -- fake container for root state
 
-  local evqueue = {}
-  local current_states = { [root_s.initial] = true }
+  local evqueue = {} -- will hold events for step() to process
+  local current_states = {}  -- states being active
   local active_trans = {} --must be balanced (enter and leave step() empty)
 
-  local function enter_state (fsm, s, now)
+  local function enter_state (hsm, s, now)
     if s.entry then s.entry(s) end
     s.container.current_substate = s
     s.done = nil
@@ -136,19 +137,19 @@ M.init = function ( root_s )
       s.expiration = now+s.out_trans[EV_TIMEOUT].timeout
     end
     if s.initial then
-      enter_state(fsm, s.initial, now)
+      enter_state(hsm, s.initial, now) -- recurse into embedded hsm
     end
   end
 
-  local function exit_state (fsm, s, dont_call)
+  local function exit_state (hsm, s, dont_call)
     if (not dont_call) and s.exit then s.exit(s) end
     current_states[s] = nil
     if s.current_substate then 
-      exit_state (fsm, s.current_substate, true) --FIXME call or not call?
+      exit_state (hsm, s.current_substate, true) --FIXME call or not call?
     end
   end
 
-  enter_state (fsm, root_s.initial, M.get_time())
+  enter_state (hsm, root_s, M.get_time()) -- activate root state
 
   local function step ()
     local idle = true
@@ -156,8 +157,8 @@ M.init = function ( root_s )
     local now = M.get_time()
 
     --queue new events
-    if fsm.get_events then 
-      fsm.get_events( evqueue )
+    if hsm.get_events then 
+      hsm.get_events( evqueue )
     end
 
     --find active transitions
@@ -207,9 +208,9 @@ M.init = function ( root_s )
     for t, e in pairs(active_trans) do
       if current_states[t.src] then --src state could've been left
         idle = false
-        exit_state(fsm, t.src)
+        exit_state(hsm, t.src)
         if t.effect then t.effect(e) end --FIXME pcall
-        enter_state(fsm, t.tgt, now)
+        enter_state(hsm, t.tgt, now)
       end
       active_trans[t] = nil
     end
@@ -240,24 +241,24 @@ M.init = function ( root_s )
   end
 
   --- Push new event to the queue.
-  -- All events added before running the fsm using step() or loop() are 
+  -- All events added before running the hsm using step() or loop() are 
   -- considered simultaneous, and the order in which they are processed 
   -- is undetermined.
   -- @param ev an event. Can be of any type except nil.
-  fsm.send_event = function (ev)
+  hsm.send_event = function (ev)
     evqueue[ev] = true
   end
 
-  --- Step trough the fsm.
+  --- Step trough the hsm.
   -- A single step will consume all pending events, and do a round evaluating
   -- available doo() functions on all active states. This call finishes as soon 
-  -- as the cycle count is reached or the fsm becomes idle.
+  -- as the cycle count is reached or the hsm becomes idle.
   -- @param count maximum number of cycles to perform. Defaults to 1
   -- @return the idle status, and the next impending expiration time if 
   -- available. Being idle means that all events have been consumed and no 
   -- doo() function is pending to be run. The expiration time indicates there 
   -- is a transition with timeout waiting.
-  fsm.step = function ( count )
+  hsm.step = function ( count )
     count = count or 1
     for i=1, count do
       local idle, expiration = step()
@@ -266,12 +267,12 @@ M.init = function ( root_s )
     return false
   end
 
-  --- Loop trough the fsm.
+  --- Loop trough the hsm.
   -- Will step the machine until it becomes idle. When this call returns means
   -- there's no actions to be taken immediatelly.
   -- @return expiration time if available, or the time the closests timeout
   -- on a transition to trigger
-  fsm.loop = function ()
+  hsm.loop = function ()
     local idle, expiration 
     repeat
       idle, expiration = step()
@@ -279,19 +280,19 @@ M.init = function ( root_s )
     return expiration
   end
 
-  return fsm
+  return hsm
 end
 
 
 --- Data structures.
--- Main structures used to describe a fsm.
+-- Main structures used to describe a hsm.
 -- @section structures
 
 ------
 -- State specification.
--- A state can be either leaf or composite. A composite state has a fsm 
+-- A state can be either leaf or composite. A composite state has a hsm 
 -- embedded, defined by the `states`, `transitions` and `initial` fields. When a
--- compodite state is activated the embedded fsm is started from the `initial`
+-- compodite state is activated the embedded hsm is started from the `initial`
 -- state. The activity of a state must be provided in the `entry`, `exit` and `doo` 
 -- fields.
 -- @field entry an optional function to be called on entering the state.
@@ -303,9 +304,9 @@ end
 -- event emitted when the `doo()` function is completed, or immediatelly if 
 -- no `doo()` function is provided.
 -- @field states When the state is a composite this table's values are the 
--- states of the embedded fsm. Keys can be used to provide a name.
+-- states of the embedded hsm. Keys can be used to provide a name.
 -- @field transitions When the state is a composite this table's values are
--- the transitions of the embedded fsm. Keys can be used to provide a name.
+-- the transitions of the embedded hsm. Keys can be used to provide a name.
 -- @field initial This is the initial state of the embedded.
 -- @table state_s
 
