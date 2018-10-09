@@ -1,3 +1,5 @@
+--- Uses an embedded hsm in a state.
+
 local ahsm = require 'ahsm'
 
 local helloworld_s = require 'examples.helloworld' -- load a fsm from a library

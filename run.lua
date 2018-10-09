@@ -1,4 +1,9 @@
-#!/bin/lua
+--- Simple run script.
+-- This script will execute a state machine from a library. This script must be 
+-- placed in the same directory with hsm.lua. It is a good example on how a 
+-- minimal program that uses an hsm looks.
+-- @usage $ lua run.lua <fsm.lua>
+-- @script run.lua
 
 local ahsm = require 'ahsm'
 

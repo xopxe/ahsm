@@ -1,4 +1,4 @@
--- library defining a state machine
+--- Two state flip-flop.
 
 local ahsm = require 'ahsm'
 

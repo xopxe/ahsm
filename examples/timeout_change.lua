@@ -1,5 +1,4 @@
---look for packages one folder up.
---package.path = package.path .. ";;;../../?.lua;../../?/init.lua"
+--- Changes timeouts at runtime.
 
 local ahsm = require 'ahsm'
 
@@ -40,5 +39,4 @@ local root = ahsm.state {
   initial = s1
 }
 
-fsm = ahsm.init( root ) 
-while fsm.loop() do end
+return root

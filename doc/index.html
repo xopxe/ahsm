@@ -24,437 +24,89 @@
 
 <div id="navigation">
 <br/>
-<h1>ldoc</h1>
+<h1>ahsm</h1>
 
 
-<h2>Contents</h2>
-<ul>
-<li><a href="#Functions">Functions</a></li>
-<li><a href="#Fields">Fields</a></li>
-<li><a href="#Data_structures">Data structures </a></li>
-</ul>
 
 
 <h2>Modules</h2>
 <ul class="nowrap">
-  <li><strong>ahsm</strong></li>
+  <li><a href="modules/ahsm.html">ahsm</a></li>
+  <li><a href="modules/tools.to_dot.html">tools.to_dot</a></li>
+</ul>
+<h2>Scripts</h2>
+<ul class="nowrap">
+  <li><a href="scripts/run.lua.html">run.lua</a></li>
+  <li><a href="scripts/run_to_dot.lua.html">run_to_dot.lua</a></li>
+</ul>
+<h2>Topics</h2>
+<ul class="">
+  <li><a href="topics/README.md.html">README</a></li>
+</ul>
+<h2>Examples</h2>
+<ul class="nowrap">
+  <li><a href="examples/composite.lua.html">composite.lua</a></li>
+  <li><a href="examples/helloworld.lua.html">helloworld.lua</a></li>
+  <li><a href="examples/timeout_change.lua.html">timeout_change.lua</a></li>
 </ul>
 
 </div>
 
 <div id="content">
 
-<h1>Module <code>ahsm</code></h1>
-<p>ahsm Hierarchical State Machine.</p>
-<p> ahsm is a very small implementation of Hierararchical State Machines,
- also known as Statecharts. It's written in Lua, with no external
- dependencies, and in a single file. Can be run on platforms as small as
- a microcontroler.</p>
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">local ahsm = require &apos;ahsm&apos;
-</pre>
-    </ul>
 
+  <h2>A Hierarchical State Machine</h2>
 
-<h2><a href="#Functions">Functions</a></h2>
-<table class="function_list">
+<h2>Modules</h2>
+<table class="module_list">
 	<tr>
-	<td class="name" nowrap><a href="#get_time">get_time ()</a></td>
-	<td class="summary">Function used by the fsm to get current time.</td>
+		<td class="name"  nowrap><a href="modules/ahsm.html">ahsm</a></td>
+		<td class="summary">ahsm Hierarchical State Machine.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#state">state (state_s)</a></td>
-	<td class="summary">Initialize a state.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#transition">transition (transition_s)</a></td>
-	<td class="summary">Initialize a transition.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#init">init (root_s)</a></td>
-	<td class="summary">Create a fsm.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#fsm.get_events">fsm.get_events (evqueue)</a></td>
-	<td class="summary">Callback for pulling events.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#fsm.send_event">fsm.send_event (ev)</a></td>
-	<td class="summary">Push new event to the queue.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#fsm.step">fsm.step (count)</a></td>
-	<td class="summary">Step trough the fsm.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#fsm.loop">fsm.loop ()</a></td>
-	<td class="summary">Loop trough the fsm.</td>
+		<td class="name"  nowrap><a href="modules/tools.to_dot.html">tools.to_dot</a></td>
+		<td class="summary">dot graph exporter.</td>
 	</tr>
 </table>
-<h2><a href="#Fields">Fields</a></h2>
-<table class="function_list">
+<h2>Scripts</h2>
+<table class="module_list">
 	<tr>
-	<td class="name" nowrap><a href="#EV_ANY">EV_ANY</a></td>
-	<td class="summary">When used in the <code>events</code> field of a <a href="index.html#transition_s">transition_s</a> will match any event.</td>
+		<td class="name"  nowrap><a href="scripts/run.lua.html">run.lua</a></td>
+		<td class="summary">Simple run script.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#EV_TIMEOUT">EV_TIMEOUT</a></td>
-	<td class="summary">Event reported to <code>effect()</code> when a transition is made due to a timeout.</td>
-	</tr>
-</table>
-<h2><a href="#Data_structures">Data structures </a></h2>
-<table class="function_list">
-	<tr>
-	<td class="name" nowrap><a href="#state_s">state_s</a></td>
-	<td class="summary">State specification.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#transition_s">transition_s</a></td>
-	<td class="summary">Transition specification.</td>
+		<td class="name"  nowrap><a href="scripts/run_to_dot.lua.html">run_to_dot.lua</a></td>
+		<td class="summary">Simple dot export script.</td>
 	</tr>
 </table>
-
-<br/>
-<br/>
-
-
-    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
-
-    <dl class="function">
-    <dt>
-    <a name = "get_time"></a>
-    <strong>get_time ()</strong>
-    </dt>
-    <dd>
-    Function used by the fsm to get current time.
- Replace with whatever your app uses. Must return a number.
- Defaults to os.time.
-
-
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "state"></a>
-    <strong>state (state_s)</strong>
-    </dt>
-    <dd>
-    Initialize a state.
- Converts a state specfification into a state.
- The state has a EV_DONE field which is an event triggered on state
- completion.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">state_s</span>
-         state specificatios (see <a href="index.html#state_s">state_s</a>).
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-        the initilized state
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "transition"></a>
-    <strong>transition (transition_s)</strong>
-    </dt>
-    <dd>
-    Initialize a transition.
- Converts a transition specification into a transition table.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">transition_s</span>
-         transition specificatios (see <a href="index.html#transition_s">transition_s</a>).
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-        the initilized transition
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "init"></a>
-    <strong>init (root_s)</strong>
-    </dt>
-    <dd>
-    Create a fsm.
- Constructs and initializes an fsm from a root state.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">root_s</span>
-         the root state, must be a composite.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-        inialized fsm
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "fsm.get_events"></a>
-    <strong>fsm.get_events (evqueue)</strong>
-    </dt>
-    <dd>
-    Callback for pulling events.
- If provided, this function will be called from inside the <a href="index.html#fsm.step">step</a> call
- so new events can be queued. All events in the queue are considered
- simultaneous, and the order in which they are processed is undetermined.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">evqueue</span>
-         a set were new events can be placed.
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "fsm.send_event"></a>
-    <strong>fsm.send_event (ev)</strong>
-    </dt>
-    <dd>
-    Push new event to the queue.
- All events added before running the fsm using step() or loop() are
- considered simultaneous, and the order in which they are processed
- is undetermined.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">ev</span>
-         an event. Can be of any type except nil.
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "fsm.step"></a>
-    <strong>fsm.step (count)</strong>
-    </dt>
-    <dd>
-    Step trough the fsm.
- A single step will consume all pending events, and do a round evaluating
- available doo() functions on all active states. This call finishes as soon
- as the cycle count is reached or the fsm becomes idle.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">count</span>
-         maximum number of cycles to perform. Defaults to 1
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-         the idle status, and the next impending expiration time if
- available. Being idle means that all events have been consumed and no
- doo() function is pending to be run. The expiration time indicates there
- is a transition with timeout waiting.
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "fsm.loop"></a>
-    <strong>fsm.loop ()</strong>
-    </dt>
-    <dd>
-    Loop trough the fsm.
- Will step the machine until it becomes idle. When this call returns means
- there's no actions to be taken immediatelly.
-
-
-
-    <h3>Returns:</h3>
-    <ol>
-
-        expiration time if available, or the time the closests timeout
- on a transition to trigger
-    </ol>
-
-
-
-
-</dd>
-</dl>
-    <h2 class="section-header "><a name="Fields"></a>Fields</h2>
-
-    <dl class="function">
-    <dt>
-    <a name = "EV_ANY"></a>
-    <strong>EV_ANY</strong>
-    </dt>
-    <dd>
-    When used in the <code>events</code> field of a <a href="index.html#transition_s">transition_s</a> will match any event.
-
-
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "EV_TIMEOUT"></a>
-    <strong>EV_TIMEOUT</strong>
-    </dt>
-    <dd>
-    Event reported to <code>effect()</code> when a transition is made due to a timeout.
-
-
-
-
-
-
-
-</dd>
-</dl>
-    <h2 class="section-header has-description"><a name="Data_structures"></a>Data structures </h2>
-
-          <div class="section-description">
-           Main structures used to describe a fsm.
-          </div>
-    <dl class="function">
-    <dt>
-    <a name = "state_s"></a>
-    <strong>state_s</strong>
-    </dt>
-    <dd>
-    State specification.
- A state can be either leaf or composite. A composite state has a fsm
- embedded, defined by the <code>states</code>, <code>transitions</code> and <code>initial</code> fields. When a
- compodite state is activated the embedded fsm is started from the <code>initial</code>
- state. The activity of a state must be provided in the <code>entry</code>, <code>exit</code> and <code>doo</code>
- fields.
-
-
-    <h3>Fields:</h3>
-    <ul>
-        <li><span class="parameter">entry</span>
-         an optional function to be called on entering the state.
-        </li>
-        <li><span class="parameter">exit</span>
-         an optional function to be called on leaving the state.
-        </li>
-        <li><span class="parameter">doo</span>
-         an optional function that will be called when the state is
- active. If this function returns true, it will be polled again. If
- returns false, it is considered as completed.
-        </li>
-        <li><span class="parameter">EV_DONE</span>
-         This field is created when calling <a href="index.html#state">state</a>, and is an
- event emitted when the <code>doo()</code> function is completed, or immediatelly if
- no <code>doo()</code> function is provided.
-        </li>
-        <li><span class="parameter">states</span>
-         When the state is a composite this table's values are the
- states of the embedded fsm. Keys can be used to provide a name.
-        </li>
-        <li><span class="parameter">transitions</span>
-         When the state is a composite this table's values are
- the transitions of the embedded fsm. Keys can be used to provide a name.
-        </li>
-        <li><span class="parameter">initial</span>
-         This is the initial state of the embedded.
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "transition_s"></a>
-    <strong>transition_s</strong>
-    </dt>
-    <dd>
-    Transition specification.
-
-
-    <h3>Fields:</h3>
-    <ul>
-        <li><span class="parameter">src</span>
-         source state.
-        </li>
-        <li><span class="parameter">dst</span>
-         destination state.
-        </li>
-        <li><span class="parameter">events</span>
-         table where the values are the events that trigger the
- transition. Can be supressed by the guard function
-        </li>
-        <li><span class="parameter">guard</span>
-         if provided, when the transition is triggered this function
- will be evaluated with the event as parameter. If returns a true value
- the transition is made.
-        </li>
-        <li><span class="parameter">effect</span>
-         this funcion of transition traversal, with the triggering
- event as parameter.
-        </li>
-        <li><span class="parameter">timeout</span>
-         If provided, this number is used as timeout for time
- traversal. After timeout time units spent in the souce state the transition
- will be triggered with the <a href="index.html#EV_TIMEOUT">EV_TIMEOUT</a> event as parameter. Uses the
- <a href="index.html#get_time">get_time</a> to read the system's time.
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-</dl>
-
+<h2>Topics</h2>
+<table class="module_list">
+	<tr>
+		<td class="name"  nowrap><a href="topics/README.md.html">README.md</a></td>
+		<td class="summary"></td>
+	</tr>
+</table>
+<h2>Examples</h2>
+<table class="module_list">
+	<tr>
+		<td class="name"  nowrap><a href="examples/composite.lua.html">composite.lua</a></td>
+		<td class="summary"></td>
+	</tr>
+	<tr>
+		<td class="name"  nowrap><a href="examples/helloworld.lua.html">helloworld.lua</a></td>
+		<td class="summary"></td>
+	</tr>
+	<tr>
+		<td class="name"  nowrap><a href="examples/timeout_change.lua.html">timeout_change.lua</a></td>
+		<td class="summary"></td>
+	</tr>
+</table>
 
 </div> <!-- id="content" -->
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-09-29 23:58:05 </i>
+<i style="float:right;">Last updated 2018-10-09 15:48:52 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

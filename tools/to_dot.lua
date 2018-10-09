@@ -1,9 +1,10 @@
+--- dot graph exporter.
+-- Creates a dot drawing of the hsm.
+--@alias M
+
 local ahsm = require 'ahsm'
 
-local lines = {}
-local a = function(s)
-  lines[#lines+1] = s
-end
+local a 
 
 local function get_counter(start)
   local count = (start or 1)-1
@@ -107,15 +108,49 @@ local function draw_state (root)
   end
 end
 
-
-local F=function(root)
+local process=function(root)
   a 'digraph G {'
   a 'compound=true;'
   draw_state (root)
   a '}'
+end
+
+local to_function = function(root, f)
+  a = f
+  process(root)
+end
+
+local to_string = function(root)
+  local lines = {}
+  to_function( root, function(s) lines[#lines+1] = s end )
   return table.concat( lines, '\n' )
 end
 
+local to_file = function(root,filename)
+  local f, err = io.open(filename, 'w')
+  if not f then return nil, err end
+  to_function( root, function(s) f:write(s, '\n') end )
+  f:close()
+  return true
+end
 
+local M = {
+--- Generate dot string.
+-- @param root The root state of the hsm.
+-- @return A string with the dot description.
+  to_string = to_string,
+  
+--- Write dot to file.
+-- @param root The root state of the hsm.
+-- @param filename the name of the file to write to.
+-- @return true on success.
+-- @return nil, message on failure
+  to_file = to_file,
+  
+--- Write dot using function.
+-- @param root The root state of the hsm.
+-- @param f the name of the file to write to.
+  to_function = to_function,
+}
 
-return F
+return M

@@ -32,7 +32,7 @@ local function init ( composite )
   end
 end
 
---- Function used by the hsm to get current time.
+--- Function used to get current time.
 -- Replace with whatever your app uses. Must return a number.
 -- Defaults to os.time.
 -- @function get_time
@@ -99,30 +99,30 @@ M.transition = function (transition_s)
   return transition_s
 end
 
---- When used in the `events` field of a @{transition_s} will match any event.
+--- When used in the @{transition_s}`.events` field will match any event.
 M.EV_ANY = EV_ANY --singleton, event matches any event
 
---- Event reported to `effect()` when a transition is made due to a timeout. 
+--- Event reported to @{transition_s}`.effect` when a transition is made due to a timeout. 
 M.EV_TIMEOUT = EV_TIMEOUT
 
 
 --- Create a hsm.
 -- Constructs and initializes an hsm from a root state.
--- @param root_s the root state, must be a composite.
+-- @param root the root state, must be a composite.
 -- @return inialized hsm
-M.init = function ( root_s )
+M.init = function ( root )
   local hsm = { 
     --- Callback for pulling events.
     -- If provided, this function will be called from inside the `step` call
-    -- so new events can be queued. All events in the queue are considered 
+    -- so new events can be added. All events adde are considered 
     -- simultaneous, and the order in which they are processed is undetermined.
-    -- @param evqueue a set were new events can be placed.
+    -- @param evqset a set where new events can be placed.
     -- @function hsm.get_events
     get_events = nil, --function (evqueue) end,
   }
-  init( root_s )
+  init( root )
   
-  root_s.container = {} -- fake container for root state
+  root.container = {} -- fake container for root state
 
   local evqueue = {} -- will hold events for step() to process
   local current_states = {}  -- states being active
@@ -149,7 +149,7 @@ M.init = function ( root_s )
     end
   end
 
-  enter_state (hsm, root_s, M.get_time()) -- activate root state
+  enter_state (hsm, root, M.get_time()) -- activate root state
 
   local function step ()
     local idle = true
@@ -240,8 +240,8 @@ M.init = function ( root_s )
     return idle, next_expiration
   end
 
-  --- Push new event to the queue.
-  -- All events added before running the hsm using step() or loop() are 
+  --- Push new event to the hsm.
+  -- All events added before running the hsm using @{step} or @{loop} are 
   -- considered simultaneous, and the order in which they are processed 
   -- is undetermined.
   -- @param ev an event. Can be of any type except nil.
@@ -270,8 +270,8 @@ M.init = function ( root_s )
   --- Loop trough the hsm.
   -- Will step the machine until it becomes idle. When this call returns means
   -- there's no actions to be taken immediatelly.
-  -- @return expiration time if available, or the time the closests timeout
-  -- on a transition to trigger
+  -- @return If available, the time of the closests pending timeout
+  -- on a transition
   hsm.loop = function ()
     local idle, expiration 
     repeat
