@@ -4,7 +4,7 @@ ahsm is a very small and simple implementation of Hierarchical State Machines, a
 
 THE LIBRARY IS VERY ALPHA QUALITY, AND HAS NOT BEEN TESTED, EXTENSIVELLY OR OTHERWISE.
 
-##Features:
+##Features
 
 - Lua only, with no eternal dependencies. Supports Lua 5.1, 5.2, 5.3.
 - States, transitions and events.
@@ -158,7 +158,7 @@ Of course, you can add behavior with `entry`, `exit` and `doo` functions if you 
 A machine is created passing a composite state to the `ahsm.init` call. This will return a table representing the machine. The composite state has a machine embedded, and will be started at the `initial` state.
 
 ```lua
-local fsm = ahsm.init( cs )
+local hsm = ahsm.init( cs )
 ```
 
 
@@ -167,32 +167,32 @@ local fsm = ahsm.init( cs )
 To use a state machin in an application you must know how to feed events, and how to step the machine.
 
 
-Events can be pushed calling `fsm.send_event`. For example, you can do:
+Events can be pushed calling `hsm.send_event`. For example, you can do:
 
 ```lua
-fsm.send_event( 'an_event' )
-fsm.send_event( cs.events.evtbl1 )
+hsm.send_event( 'an_event' )
+hsm.send_event( cs.events.evtbl1 )
 ```
 
 You can send events from anywhere in your program, including from state functions or transition effects.
 
-Also, the state machine will pull events calling `fsm.get_events(evs)`, where evs is a table where events can be added`. You can provide this function to add events as needed. For exeample
+Also, the state machine will pull events calling `hsm.get_events(evs)`, where evs is a table where events can be added`. You can provide this function to add events as needed. For exeample
 
 ```lua
 local ev_much_memory = {}               -- an event
-fsm.get_events = function (evs)
+hsm.get_events = function (evs)
   if collectagarbage('count') > 10 then
     evs[  ev_much_memory  ] = true      -- is sent under some conditions
   end
 end
 ```
 
-To advance the state machine you have to step it. It can be done in two ways. One option is to call `fsm.step( count)`, where count is the number of steps you want to perform. During a step the fsm consumes all registered events since the last step, and processes the affected transitions. All pending events are considered simultaneous, and the order in which they are processed is non-deterministic. Because of this, you should call step as soon as possible, for example after adding any event with `fsm.send_event`. During a step new events can be emitted, to be processed in the next step. The `fsm.step` call returns a idle status. If there are pending events, or there's an active state which has a `doo` function which erquested to be polled, the idle status will be false. When the machine is iddle, there is no reason to step the fsm until new events are produced. If there are transitions waiting for timeout, the next impeding timeout is returned as second parameter.
+To advance the state machine you have to step it. It can be done in two ways. One option is to call `hsm.step( count)`, where count is the number of steps you want to perform. During a step the hsm consumes all registered events since the last step, and processes the affected transitions. All pending events are considered simultaneous, and the order in which they are processed is non-deterministic. Because of this, you should call step as soon as possible, for example after adding any event with `hsm.send_event`. During a step new events can be emitted, to be processed in the next step. The `hsm.step` call returns a idle status. If there are pending events, or there's an active state which has a `doo` function which erquested to be polled, the idle status will be false. When the machine is iddle, there is no reason to step the hsm until new events are produced. If there are transitions waiting for timeout, the next impeding timeout is returned as second parameter.
 
-If you want to just consume all events and only get the control back when the machine is idle, you can use `fsm.loop()`. Internally this call is just:
+If you want to just consume all events and only get the control back when the machine is idle, you can use `hsm.loop()`. Internally this call is just:
 
 ```lua
-fsm.loop = function ()
+hsm.loop = function ()
   local idle, expiration 
   repeat
     idle, expiration = step()
@@ -210,4 +210,6 @@ Same as Lua, see LICENSE.
 
 ## Who?
 
-Copyright (C) 2018 Jorge Visca, jvisca@fing.edu.uy
+Copyright (C) 2018 Jorge Visca, jvisca@fing.edu.
+
+Grupo MINA - Facultad de Ingeniería - Universidad de la República

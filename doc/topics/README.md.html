@@ -32,7 +32,7 @@
 
 <h2>Contents</h2>
 <ul>
-<li><a href="#Features_">Features: </a></li>
+<li><a href="#Features">Features </a></li>
 <li><a href="#How_to_run_">How to run? </a></li>
 <li><a href="#How_to_use_">How to use? </a></li>
 <li><a href="#License">License </a></li>
@@ -72,8 +72,8 @@
 
 <p>THE LIBRARY IS VERY ALPHA QUALITY, AND HAS NOT BEEN TESTED, EXTENSIVELLY OR OTHERWISE.</p>
 
-<p><a name="Features_"></a></p>
-<h2>Features:</h2>
+<p><a name="Features"></a></p>
+<h2>Features</h2>
 
 <ul>
     <li>Lua only, with no eternal dependencies. Supports Lua 5.1, 5.2, 5.3.</li>
@@ -252,7 +252,7 @@ $ dot -Tps composite.dot -o composite.ps
 
 
 <pre>
-<span class="keyword">local</span> fsm = ahsm.init( cs )
+<span class="keyword">local</span> hsm = ahsm.init( cs )
 </pre>
 
 
@@ -262,23 +262,23 @@ $ dot -Tps composite.dot -o composite.ps
 <p>To use a state machin in an application you must know how to feed events, and how to step the machine.</p>
 
 
-<p>Events can be pushed calling <code>fsm.send_event</code>. For example, you can do:</p>
+<p>Events can be pushed calling <code>hsm.send_event</code>. For example, you can do:</p>
 
 
 <pre>
-fsm.send_event( <span class="string">'an_event'</span> )
-fsm.send_event( cs.events.evtbl1 )
+hsm.send_event( <span class="string">'an_event'</span> )
+hsm.send_event( cs.events.evtbl1 )
 </pre>
 
 
 <p>You can send events from anywhere in your program, including from state functions or transition effects.</p>
 
-<p>Also, the state machine will pull events calling <code>fsm.get_events(evs)</code>, where evs is a table where events can be added`. You can provide this function to add events as needed. For exeample</p>
+<p>Also, the state machine will pull events calling <code>hsm.get_events(evs)</code>, where evs is a table where events can be added`. You can provide this function to add events as needed. For exeample</p>
 
 
 <pre>
 <span class="keyword">local</span> ev_much_memory = {}               <span class="comment">-- an event
-</span>fsm.get_events = <span class="keyword">function</span> (evs)
+</span>hsm.get_events = <span class="keyword">function</span> (evs)
   <span class="keyword">if</span> collectagarbage(<span class="string">'count'</span>) &gt; <span class="number">10</span> <span class="keyword">then</span>
     evs[  ev_much_memory  ] = <span class="keyword">true</span>      <span class="comment">-- is sent under some conditions
 </span>  <span class="keyword">end</span>
@@ -286,13 +286,13 @@ fsm.send_event( cs.events.evtbl1 )
 </pre>
 
 
-<p>To advance the state machine you have to step it. It can be done in two ways. One option is to call <code>fsm.step( count)</code>, where count is the number of steps you want to perform. During a step the fsm consumes all registered events since the last step, and processes the affected transitions. All pending events are considered simultaneous, and the order in which they are processed is non-deterministic. Because of this, you should call step as soon as possible, for example after adding any event with <code>fsm.send_event</code>. During a step new events can be emitted, to be processed in the next step. The <code>fsm.step</code> call returns a idle status. If there are pending events, or there's an active state which has a <code>doo</code> function which erquested to be polled, the idle status will be false. When the machine is iddle, there is no reason to step the fsm until new events are produced. If there are transitions waiting for timeout, the next impeding timeout is returned as second parameter.</p>
+<p>To advance the state machine you have to step it. It can be done in two ways. One option is to call <code>hsm.step( count)</code>, where count is the number of steps you want to perform. During a step the hsm consumes all registered events since the last step, and processes the affected transitions. All pending events are considered simultaneous, and the order in which they are processed is non-deterministic. Because of this, you should call step as soon as possible, for example after adding any event with <code>hsm.send_event</code>. During a step new events can be emitted, to be processed in the next step. The <code>hsm.step</code> call returns a idle status. If there are pending events, or there's an active state which has a <code>doo</code> function which erquested to be polled, the idle status will be false. When the machine is iddle, there is no reason to step the hsm until new events are produced. If there are transitions waiting for timeout, the next impeding timeout is returned as second parameter.</p>
 
-<p>If you want to just consume all events and only get the control back when the machine is idle, you can use <code>fsm.loop()</code>. Internally this call is just:</p>
+<p>If you want to just consume all events and only get the control back when the machine is idle, you can use <code>hsm.loop()</code>. Internally this call is just:</p>
 
 
 <pre>
-fsm.loop = <span class="keyword">function</span> ()
+hsm.loop = <span class="keyword">function</span> ()
   <span class="keyword">local</span> idle, expiration
   <span class="keyword">repeat</span>
     idle, expiration = step()
@@ -313,14 +313,16 @@ fsm.loop = <span class="keyword">function</span> ()
 <p><a name="Who_"></a></p>
 <h2>Who?</h2>
 
-<p>Copyright (C) 2018 Jorge Visca, jvisca@fing.edu.uy</p>
+<p>Copyright (C) 2018 Jorge Visca, jvisca@fing.edu.</p>
+
+<p>Grupo MINA - Facultad de Ingeniería - Universidad de la República</p>
 
 
 </div> <!-- id="content" -->
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-10-09 15:48:52 </i>
+<i style="float:right;">Last updated 2018-10-09 15:55:35 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
