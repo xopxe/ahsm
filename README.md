@@ -54,7 +54,6 @@ To create a hsm you do:
 - define states.
 - define transitions.
 - compose states
-- initialize a machine.
 - integrate with your application.
 
 ### Defining state.
