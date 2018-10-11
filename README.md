@@ -54,7 +54,6 @@ To create a hsm you do:
 - define states.
 - define transitions.
 - compose states
-- initialize a machine.
 - integrate with your application.
 
 ### Defining state.
@@ -153,7 +152,7 @@ local cs = ahsm.state {
 Of course, you can add behavior with `entry`, `exit` and `doo` functions if you want to use it as part of your sate machine. Such a composite state is the standard way a state machine is reused. Typically, a library will return a composite state, and the user will require it and then use it in its own state machine. The events to feed the embedded machine will be found in the events table.
 
 
-### Initialize a machine.
+### Integrate with your application
 
 A machine is created passing a composite state to the `ahsm.init` call. This will return a table representing the machine. The composite state has a machine embedded, and will be started at the `initial` state.
 
@@ -161,10 +160,7 @@ A machine is created passing a composite state to the `ahsm.init` call. This wil
 local hsm = ahsm.init( cs )
 ```
 
-
-### Integrate with your application
-
-To use a state machin in an application you must know how to feed events, and how to step the machine.
+To use a state machine in an application you must feed it events, and let it advance .
 
 
 Events can be pushed calling `hsm.send_event`. For example, you can do:
@@ -187,7 +183,7 @@ hsm.get_events = function (evs)
 end
 ```
 
-To advance the state machine you have to step it. It can be done in two ways. One option is to call `hsm.step( count)`, where count is the number of steps you want to perform. During a step the hsm consumes all registered events since the last step, and processes the affected transitions. All pending events are considered simultaneous, and the order in which they are processed is non-deterministic. Because of this, you should call step as soon as possible, for example after adding any event with `hsm.send_event`. During a step new events can be emitted, to be processed in the next step. The `hsm.step` call returns a idle status. If there are pending events, or there's an active state which has a `doo` function which erquested to be polled, the idle status will be false. When the machine is iddle, there is no reason to step the hsm until new events are produced. If there are transitions waiting for timeout, the next impeding timeout is returned as second parameter.
+To advance the state machine you have to step it. It can be done in two ways. One option is to call `hsm.step( count)`, where count is the number of steps you want to perform (defaults to 1). During a step the hsm consumes all registered events since the last step, and processes the affected transitions. All pending events are considered simultaneous, and the order in which they are processed is non-deterministic. Because of this, you should call step as soon as possible, for example after adding any event with `hsm.send_event`. During a step new events can be emitted, to be processed in the next step. The `hsm.step` call returns a idle status. If there are pending events, or there's an active state which has a `doo` function which erquested to be polled, the idle status will be false. When the machine is iddle, there is no reason to step the hsm until new events are produced. If there are transitions waiting for timeout, the next impeding timeout is returned as second parameter.
 
 If you want to just consume all events and only get the control back when the machine is idle, you can use `hsm.loop()`. Internally this call is just:
 

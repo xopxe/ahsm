@@ -7,7 +7,7 @@
 -- @usage local ahsm = require 'ahsm'
 -- @alias M
 
-local pairs, type = pairs, type
+local pairs, type, rawset = pairs, type, rawset
 local math_huge = math.huge
 
 local M = {}
@@ -146,9 +146,8 @@ M.init = function ( root )
   local hsm = { 
     --- Callback for pulling events.
     -- If provided, this function will be called from inside the `step` call
-    -- so new events can be added. All events adde are considered 
-    -- simultaneous, and the order in which they are processed is undetermined.
-    -- @param evqset a set where new events can be placed.
+    -- so new events can be added. 
+    -- @param evqueue an array where new events can be added.
     -- @function hsm.get_events
     get_events = nil, --function (evqueue) end,
   }
@@ -157,7 +156,7 @@ M.init = function ( root )
   root.container = {} -- fake container for root state
   debug_names[EV_TIMEOUT] = 'EV_TIMEOUT'
 
-  local evqueue = {} -- will hold events for step() to process
+  local evqueue = {} -- array, will hold events for step() to process
   local current_states = {}  -- states being active
   local active_trans = {} --must be balanced (enter and leave step() empty)
 
@@ -198,7 +197,7 @@ M.init = function ( root )
     for s, _ in pairs( current_states ) do
       local transited = false
       -- check for matching transitions for events
-      for e, _ in pairs(evqueue) do
+      for _, e in ipairs(evqueue) do
         local t = s.out_trans[e]
         if t and (t.guard==nil or t.guard(e)) then  --TODO pcall?
           transited = true
@@ -209,7 +208,7 @@ M.init = function ( root )
       --check if event is * and there is anything queued
       if not transited then -- priority down if already found listed event
         local t = s.out_trans[EV_ANY]
-        local e = next(evqueue)
+        local e = evqueue[1]
         if (t and e~=nil) and (t.guard==nil or t.guard(e)) then
           transited = true
           active_trans[t] = e
@@ -232,9 +231,8 @@ M.init = function ( root )
     end
 
     -- purge current events
-    -- they are simultaneous, so concurrent transitions are not determnistic
-    for e, _ in pairs(evqueue) do
-      evqueue[e] = nil
+    for i=1, #evqueue do
+      rawset(evqueue, i, nil)
     end
 
     --call leave_state, traverse transition, and enter_state
@@ -255,13 +253,13 @@ M.init = function ( root )
     for s, _ in pairs(current_states) do
       if not s.done then
         if type(s.doo)=='nil' then 
-          evqueue[s.EV_DONE] = true
+          evqueue[#evqueue+1] = s.EV_DONE
           s.done = true
           idle = false -- let step again for new event
         elseif type(s.doo)=='function' then 
           local poll_flag = s.doo(s) --TODO pcall
           if not poll_flag then 
-            evqueue[s.EV_DONE] = true
+            evqueue[#evqueue+1] = s.EV_DONE
             s.done = true
             idle = false -- let step again for new EV_DONE event
           end
@@ -282,7 +280,7 @@ M.init = function ( root )
   -- is undetermined.
   -- @param ev an event. Can be of any type except nil.
   hsm.send_event = function (ev)
-    evqueue[ev] = true
+    evqueue[#evqueue+1] = ev
   end
 
   --- Step trough the hsm.
