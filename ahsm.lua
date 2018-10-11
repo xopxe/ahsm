@@ -15,14 +15,40 @@ local M = {}
 local EV_ANY = {}
 local EV_TIMEOUT = {}
 
+local debug_names = {}
+
+local function pick_debug_name(v, nv)
+  if debug_names[v] then return debug_names[v] end
+  if type(nv)=='string' then 
+    debug_names[v] = nv
+  else 
+    debug_names[v] = tostring(v) 
+  end
+  return debug_names[v]
+end
+
+
 local function init ( composite )
+  --initialize debug name for states and events
+  if M.debug then 
+    for ne, e in pairs(composite.events or {}) do
+      M.debug('event', '"'..pick_debug_name(e, ne)..'"')
+    end
+    for ns, s in pairs(composite.states) do
+      M.debug('state', tostring(s), '"'..pick_debug_name(s, ns)..'"')
+    end
+  end
+
   for _, s in pairs(composite.states) do
     s.container = composite
-    for _, t in pairs(composite.transitions or {}) do
+    for nt, t in pairs(composite.transitions or {}) do
       if t.src == s then 
         for _, e in pairs(t.events or {}) do
           if s.out_trans[e] then 
             print('WARN: multiple transitions from state on same event. Picking one.') 
+          end
+          if M.debug then
+            M.debug('trans', debug_names[s], '--'..pick_debug_name(t, nt)..'['..(debug_names[e] or e)..']->', debug_names[t.tgt])
           end
           s.out_trans[e] = t
         end
@@ -47,9 +73,16 @@ M.get_time = os.time
 M.state = function (state_s)
   state_s = state_s or {}
   state_s.EV_DONE = {} --singleton, trigered on state completion
+  if M.debug then debug_names[state_s.EV_DONE] = 'EV_DONE' end
   state_s.out_trans = {}
   return state_s
 end
+
+--- Debug print function.
+-- If provided, this function will be called to print debug information.
+-- It must be set before calling @{init}
+-- @usage ahsm.debug = print
+M.debug = nil
 
 local to_key = {}
 local mt_transition = {
@@ -105,7 +138,6 @@ M.EV_ANY = EV_ANY --singleton, event matches any event
 --- Event reported to @{transition_s}`.effect` when a transition is made due to a timeout. 
 M.EV_TIMEOUT = EV_TIMEOUT
 
-
 --- Create a hsm.
 -- Constructs and initializes an hsm from a root state.
 -- @param root the root state, must be a composite.
@@ -121,8 +153,9 @@ M.init = function ( root )
     get_events = nil, --function (evqueue) end,
   }
   init( root )
-  
+
   root.container = {} -- fake container for root state
+  debug_names[EV_TIMEOUT] = 'EV_TIMEOUT'
 
   local evqueue = {} -- will hold events for step() to process
   local current_states = {}  -- states being active
@@ -207,6 +240,9 @@ M.init = function ( root )
     --call leave_state, traverse transition, and enter_state
     for t, e in pairs(active_trans) do
       if current_states[t.src] then --src state could've been left
+        if M.debug then 
+          M.debug('step', debug_names[t.src], '--'..debug_names[t]..'['..(debug_names[e] or e)..']->', debug_names[t.tgt]) 
+        end
         idle = false
         exit_state(hsm, t.src)
         if t.effect then t.effect(e) end --FIXME pcall

@@ -1,5 +1,7 @@
 local ahsm = require 'ahsm'
 
+ahsm.debug = print
+
 local composite_s = require 'examples.composite'
 composite_s.entry = function() print "MACHINE STARTED" end
 
@@ -13,10 +15,16 @@ local function loop(e)
   print( '===', hsm.loop()  )
 end
 
+--package.path = package.path .. ";;;tools/?.lua;tools/?/init.lua"
+--local to_dot = require 'to_dot'
+
 send(composite_s.events.e_on)
 hsm.loop()
 send('e_restart')
 hsm.loop()
+
+--assert(to_dot.to_file(composite_s, 'b.dot'))
+
 send('e_off')
 hsm.loop()
 send(composite_s.events.e_on)

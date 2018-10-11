@@ -2,8 +2,8 @@
 
 local ahsm = require 'ahsm'
 
-local hello_s = ahsm.state { exit=function () print "HW STATE hello" end } --state with exit func
-local world_s = ahsm.state { entry=function () print "HW STATE world" end } --state with entry func
+local hello_s = ahsm.state { exit=function () --[[print "HW STATE hello"]] end } --state with exit func
+local world_s = ahsm.state { entry=function () --[[print "HW STATE world"]] end } --state with entry func
 local t11 = ahsm.transition { src=hello_s, tgt=world_s, events={hello_s.EV_DONE} } --transition on state completion
 local t12 = ahsm.transition { src=world_s, tgt=hello_s, events={'e_restart'}, timeout=2.0} --transition with timeout, event is a string
 
@@ -18,7 +18,7 @@ local helloworld_s = ahsm.state {
       coroutine.yield(true)
     end
   end ),
-  entry = function() print 'HW doo running' end,
+  entry = function() --[[print 'HW doo running']] end,
   exit = function () print('HW doo iteration count', a) end,  -- will show efect of doo on exit
 }
 
