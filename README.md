@@ -172,13 +172,13 @@ hsm.send_event( cs.events.evtbl1 )
 
 You can send events from anywhere in your program, including from state functions or transition effects.
 
-Also, the state machine will pull events calling `hsm.get_events(evs)`, where evs is a table where events can be added`. You can provide this function to add events as needed. For exeample
+Also, the state machine will pull events calling `hsm.get_events(evqueue)`, where evqueue is an array table where events can be added. You can provide this function to add events as needed. For exeample
 
 ```lua
 local ev_much_memory = {}               -- an event
-hsm.get_events = function (evs)
+hsm.get_events = function (evqueue)
   if collectagarbage('count') > 10 then
-    evs[  ev_much_memory  ] = true      -- is sent under some conditions
+    evqueue[#evqueue+1] = ev_much_memory      -- is sent under some conditions
   end
 end
 ```

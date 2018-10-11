@@ -179,7 +179,6 @@ end
 local M = {
 --- Generate dot string.
 -- @param root The root state of the hsm.
--- @param root The root state of the hsm.
 -- @return A string with the dot description.
   to_string = to_string,
 
