@@ -9,7 +9,6 @@
 -- @script run_to_dot.lua
 
 package.path = package.path .. ";;;tools/?.lua;tools/?/init.lua"
-local ahsm = require 'ahsm'
 
 local filehsm = arg[1]
 local filetarget = arg[2]

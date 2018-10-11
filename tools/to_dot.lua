@@ -2,9 +2,7 @@
 -- Creates a dot drawing of the hsm.
 --@alias M
 
-local ahsm = require 'ahsm'
-
-local a 
+local a  -- the "write line" function
 
 local function get_counter(start)
   local count = (start or 1)-1
