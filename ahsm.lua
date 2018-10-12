@@ -221,11 +221,14 @@ M.init = function ( root )
       end
       --check timeouts
       if not transited then
-        if s.out_trans[EV_TIMEOUT] then 
+        local t = s.out_trans[EV_TIMEOUT]
+        if t then 
           local expiration = s.expiration
-          if now>expiration then 
-            transited = true
-            active_trans[s.out_trans[EV_TIMEOUT]] = EV_TIMEOUT
+          if now>expiration then
+            if (t.guard==nil or t.guard(EV_TIMEOUT)) then 
+              transited = true
+              active_trans[s.out_trans[EV_TIMEOUT]] = EV_TIMEOUT
+            end
           else
             if expiration<next_expiration then
               next_expiration = expiration
