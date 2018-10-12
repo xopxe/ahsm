@@ -32,10 +32,10 @@ local function init ( composite )
   --initialize debug name for states and events
   if M.debug then 
     for ne, e in pairs(composite.events or {}) do
-      M.debug('event', '"'..pick_debug_name(e, ne)..'"')
+      M.debug('event', e, '"'..pick_debug_name(e, ne)..'"')
     end
     for ns, s in pairs(composite.states) do
-      M.debug('state', tostring(s), '"'..pick_debug_name(s, ns)..'"')
+      M.debug('state', s, '"'..pick_debug_name(s, ns)..'"')
     end
   end
 
@@ -135,7 +135,8 @@ end
 --- When used in the @{transition_s}`.events` field will match any event.
 M.EV_ANY = EV_ANY --singleton, event matches any event
 
---- Event reported to @{transition_s}`.effect` when a transition is made due to a timeout. 
+--- Event reported to @{transition_s}`.effect` when a transition is made due 
+-- to a timeout. 
 M.EV_TIMEOUT = EV_TIMEOUT
 
 --- Create a hsm.
@@ -169,6 +170,7 @@ M.init = function ( root )
       s.expiration = now+s.out_trans[EV_TIMEOUT].timeout
     end
     if s.initial then
+      if M.debug then M.debug('init', debug_names[s.initial]) end
       enter_state(hsm, s.initial, now) -- recurse into embedded hsm
     end
   end
