@@ -37,6 +37,9 @@ local function init ( composite )
     for ns, s in pairs(composite.states) do
       M.debug('state', s, '"'..pick_debug_name(s, ns)..'"')
     end
+    for nt, t in pairs(composite.transitions) do
+      M.debug('trans', t, '"'..pick_debug_name(t, nt)..'"')
+    end
   end
 
   for _, s in pairs(composite.states) do
@@ -48,7 +51,7 @@ local function init ( composite )
             print('WARN: multiple transitions from state on same event. Picking one.') 
           end
           if M.debug then
-            M.debug('trans', debug_names[s], '--'..pick_debug_name(t, nt)..'['..(debug_names[e] or e)..']->', debug_names[t.tgt])
+            M.debug('trsel', debug_names[s], '--'..pick_debug_name(t, nt)..'['..(debug_names[e] or e)..']->', debug_names[t.tgt])
           end
           s.out_trans[e] = t
         end
@@ -241,7 +244,7 @@ M.init = function ( root )
     for t, e in pairs(active_trans) do
       if current_states[t.src] then --src state could've been left
         if M.debug then 
-          M.debug('step', debug_names[t.src], '--'..debug_names[t]..'['..(debug_names[e] or e)..']->', debug_names[t.tgt]) 
+          M.debug('step', debug_names[t.src], '--'..tostring(debug_names[t] or t)..'['..tostring(debug_names[e] or e)..']->', debug_names[t.tgt]) 
         end
         idle = false
         exit_state(hsm, t.src)
