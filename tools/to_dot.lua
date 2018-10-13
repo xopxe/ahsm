@@ -21,7 +21,7 @@ local function draw_transition(name, t)
   local elist = '['
   do
     local comma = ''
-    for _, e in pairs (t.events) do
+    for _, e in pairs (t.events or {}) do
       if names[e] then 
         elist, comma = elist..comma..names[e], ','
       elseif e==t.src.EV_DONE then
@@ -97,7 +97,7 @@ local function draw_state (root)
         namelabel = namelabel .. comma .. fname
         comma = ','
       end
-    end   
+    end
 
     if s.states then
       a( 'subgraph cluster_'..name..' {' )
