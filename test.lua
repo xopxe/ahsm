@@ -23,7 +23,7 @@ hsm.loop()
 send('e_restart')
 hsm.loop()
 
---assert(to_dot.to_file(composite_s, 'b.dot'))
+--to_dot.to_function(composite_s, print)
 
 send('e_off')
 hsm.loop()

@@ -1,5 +1,5 @@
 file = {"ahsm.lua", "run.lua", "tools/to_dot.lua", "tools/run_to_dot.lua"}
-examples = "examples"
+examples = {"examples/composite.lua", "examples/helloworld.lua", "examples/timeout_change.lua"}
 project = "ahsm"
 dir='doc/'
 description = "A Hierarchical State Machine"

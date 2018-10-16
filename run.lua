@@ -24,6 +24,7 @@ end
 
 local ahsm = require 'ahsm'
 
+-- get parameters
 local filename = arg[#arg]
 if not filename then exit_on_error('Missing parameter') end
 
@@ -44,6 +45,7 @@ for i = 1, #arg-1 do
   end
 end
 
+-- initialize libs
 local socket
 if config.time=='socket' or config.sleep=='socket' then
   socket = require 'socket'
@@ -55,14 +57,13 @@ elseif config.gettime == 'os' then
 end
 
 
-
-
+-- load hsm
 local root = assert(dofile(filename))
+local hsm = ahsm.init( root )  -- create fsm from root composite state
 
-local fsm = ahsm.init( root )  -- create fsm from root composite state
-
+-- run hsm
 repeat
-  local next_t = fsm.loop()
+  local next_t = hsm.loop()
   if config.sleep ~= 'none' then 
     if next_t then
       local dt = next_t-ahsm.get_time()
