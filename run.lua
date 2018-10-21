@@ -50,9 +50,9 @@ local socket
 if config.time=='socket' or config.sleep=='socket' then
   socket = require 'socket'
 end
-if config.gettime == 'socket' then 
+if config.time == 'socket' then 
   ahsm.get_time = socket.gettime
-elseif config.gettime == 'os' then 
+elseif config.time == 'os' then 
   ahsm.get_time = os.time
 end
 
