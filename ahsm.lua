@@ -47,13 +47,11 @@ local function init ( composite )
     for nt, t in pairs(composite.transitions or {}) do
       if t.src == s then 
         for _, e in pairs(t.events or {}) do
-          if s.out_trans[e] then 
-            print('WARN: multiple transitions from state on same event. Picking one.') 
-          end
           if M.debug then
             M.debug('trsel', debug_names[s], '--'..pick_debug_name(t, nt)..'['..(debug_names[e] or e._name or e)..']->', debug_names[t.tgt])
           end
-          s.out_trans[e] = t
+          s.out_trans[e] = s.out_trans[e] or {}
+          s.out_trans[e][t] = true
         end
       end
     end
@@ -99,20 +97,14 @@ local mt_transition = {
   __newindex = function(t, k, v)
     if k=='timeout' then
       local src_out_trans = t.src.out_trans
-      local src_timout_trans = src_out_trans[EV_TIMEOUT]
-      if v ~= nil then
-        if src_timout_trans and t~=src_timout_trans then 
-          print('WARN: multiple transitions w/timeout from same state. Picking first.')
-          if v<src_timout_trans.timeout then 
-            src_out_trans[EV_TIMEOUT] = t
-          end
-        else
-          src_out_trans[EV_TIMEOUT] = t
-        end
-      elseif src_timout_trans == t then 
-        src_out_trans[EV_TIMEOUT] = nil
+      local number_v = tonumber(v)
+      if number_v then 
+        src_out_trans[EV_TIMEOUT] = src_out_trans[EV_TIMEOUT] or {}
+        src_out_trans[EV_TIMEOUT][t] = true
+      elseif src_out_trans[EV_TIMEOUT] then
+        src_out_trans[EV_TIMEOUT][t] = nil
       end
-      rawset(t, to_key, v)
+      rawset(t, to_key, number_v)
     else
       rawset(t, k, v)
     end
@@ -169,9 +161,18 @@ M.init = function ( root )
     s.container.current_substate = s
     s.done = nil
     current_states[s] = true
-    if s.out_trans[EV_TIMEOUT] then 
-      s.expiration = now+s.out_trans[EV_TIMEOUT].timeout
+
+    local out_trans_timeout = s.out_trans[EV_TIMEOUT]
+    if out_trans_timeout then 
+      local timeout, t = math_huge, nil
+      for tt in pairs(out_trans_timeout) do
+        local t_timeout = tt.timeout
+        if t_timeout<timeout then timeout, t = t_timeout, tt end
+      end
+      if M.debug then M.debug('sched', now + timeout,  debug_names[s]..'--'..tostring(debug_names[t] or t)) end
+      s.expiration = now + timeout
     end
+
     if s.initial then
       if M.debug then M.debug('init', debug_names[s.initial]) end
       enter_state(hsm, s.initial, now) -- recurse into embedded hsm
@@ -203,35 +204,47 @@ M.init = function ( root )
       local transited = false
       -- check for matching transitions for events
       for _, e in ipairs(evqueue) do
-        local t = s.out_trans[e]
-        if t and (t.guard==nil or t.guard(e)) then  --TODO pcall?
-          transited = true
-          active_trans[t] = e
-          break
+        local out_trans_e = s.out_trans[e]
+        if out_trans_e then 
+          for t in pairs(out_trans_e) do -- search through transitions on event 
+            if t.guard==nil or t.guard(e) then  --TODO pcall?
+              transited = true
+              active_trans[t] = e
+              break
+            end
+          end
+          if transited then break end
         end
       end
       --check if event is * and there is anything queued
       if not transited then -- priority down if already found listed event
-        local t = s.out_trans[EV_ANY]
+        local out_trans_any = s.out_trans[EV_ANY]
         local e = evqueue[1]
-        if (t and e~=nil) and (t.guard==nil or t.guard(e)) then
-          transited = true
-          active_trans[t] = e
+        if e~=nil and out_trans_any then 
+          for t in pairs(out_trans_any) do
+            if t.guard==nil or t.guard(e) then
+              transited = true
+              active_trans[t] = e
+              break
+            end
+          end
         end
       end
       --check timeouts
       if not transited then
-        local t = s.out_trans[EV_TIMEOUT]
-        if t then 
-          local expiration = s.expiration
-          if now>expiration then
-            if (t.guard==nil or t.guard(EV_TIMEOUT)) then 
-              transited = true
-              active_trans[s.out_trans[EV_TIMEOUT]] = EV_TIMEOUT
-            end
-          else
-            if expiration<next_expiration then
-              next_expiration = expiration
+        local out_trans_timeout = s.out_trans[EV_TIMEOUT]
+        if out_trans_timeout then 
+          for t in pairs(out_trans_timeout) do -- search through transitions on tmout 
+            local expiration = s.expiration
+            if now>expiration then
+              if (t.guard==nil or t.guard(EV_TIMEOUT)) then 
+                transited = true
+                active_trans[s.out_trans[EV_TIMEOUT]] = EV_TIMEOUT
+              end
+            else
+              if expiration<next_expiration then
+                next_expiration = expiration
+              end
             end
           end
         end
