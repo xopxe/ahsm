@@ -22,7 +22,7 @@ local function pick_debug_name(v, nv)
   if type(nv)=='string' then 
     debug_names[v] = nv
   else 
-    debug_names[v] = tostring(v) 
+    debug_names[v] = tostring(v._name or v) 
   end
   return debug_names[v]
 end
@@ -51,7 +51,7 @@ local function init ( composite )
             print('WARN: multiple transitions from state on same event. Picking one.') 
           end
           if M.debug then
-            M.debug('trsel', debug_names[s], '--'..pick_debug_name(t, nt)..'['..(debug_names[e] or e)..']->', debug_names[t.tgt])
+            M.debug('trsel', debug_names[s], '--'..pick_debug_name(t, nt)..'['..(debug_names[e] or e._name or e)..']->', debug_names[t.tgt])
           end
           s.out_trans[e] = t
         end

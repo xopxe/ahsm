@@ -26,6 +26,8 @@ local function draw_transition(name, t)
         elist, comma = elist..comma..names[e], ','
       elseif e==t.src.EV_DONE then
         elist, comma = elist..comma..'EV_DONE', ','
+      else
+        elist, comma = elist..comma..tostring(e._name or e), ','
       end
     end
     if t.timeout then
