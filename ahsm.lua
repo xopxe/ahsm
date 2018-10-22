@@ -85,6 +85,7 @@ end
 -- @usage ahsm.debug = print
 M.debug = nil
 
+-- metatable to maintain state.out_trans structure for transition timeouts
 local to_key = {}
 local mt_transition = {
   __index = function (t, k)
@@ -98,10 +99,10 @@ local mt_transition = {
     if k=='timeout' then
       local src_out_trans = t.src.out_trans
       local number_v = tonumber(v)
-      if number_v then 
+      if number_v then  -- add a timeout
         src_out_trans[EV_TIMEOUT] = src_out_trans[EV_TIMEOUT] or {}
         src_out_trans[EV_TIMEOUT][t] = true
-      elseif src_out_trans[EV_TIMEOUT] then
+      elseif src_out_trans[EV_TIMEOUT] then -- remove a timeout
         src_out_trans[EV_TIMEOUT][t] = nil
       end
       rawset(t, to_key, number_v)
