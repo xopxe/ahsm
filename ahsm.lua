@@ -111,6 +111,12 @@ local mt_transition = {
   end
 }
 
+local mt_state_gc = {
+  __gc = function (s)
+    if s.exit then s.exit(s) end
+  end
+}
+
 --- Initialize a transition.
 -- Converts a transition specification into a transition table.
 -- @param transition_s transition specificatios (see @{transition_s}).
@@ -148,6 +154,10 @@ M.init = function ( root )
     get_events = nil, --function (evqueue) end,
   }
   init( root )
+
+  if root.exit then -- use gc to trigger exit() function on root state
+    setmetatable(root, mt_state_gc)
+  end
 
   root.container = {} -- fake container for root state
   debug_names[EV_TIMEOUT] = 'EV_TIMEOUT'
