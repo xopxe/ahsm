@@ -68,7 +68,7 @@
 
 <h1>ahsm: a Hierarchical State Machine</h1>
 
-<p>ahsm is a very small and simple implementation of Hierarchical State Machines, also known as Statecharts. It's written in Lua, with no external dependencies, and in a single file. Can be run on platforms as small as a microcontroller. The API is inspired by the <a href="https://github.com/kmarkus/rFSM">rFSM</a> library, but is heavily trimmed down to only the bsic functionality.</p>
+<p>ahsm is a very small and simple implementation of Hierarchical State Machines, also known as Statecharts. It's written in Lua, with no external dependencies, and in a single file. Can be run on platforms as small as a microcontroller. The API is inspired by the <a href="https://github.com/kmarkus/rFSM">rFSM</a> library, but is heavily trimmed down to only the basic functionality.</p>
 
 <p>THE LIBRARY IS VERY ALPHA QUALITY, AND HAS NOT BEEN TESTED, EXTENSIVELLY OR OTHERWISE.</p>
 
@@ -187,7 +187,7 @@ $ dot -Tps composite.dot -o composite.ps
 </pre>
 
 
-<p>This transition besides trigering on <code>ev1</code> will also trigger on timeout. This means that after 5 seconds will trigger as if a special <a href="../modules/ahsm.html#EV_TIMEOUT">ahsm.EV_TIMEOUT</a> event triggered it. Times are measured calling <code>ahsm.gettime()</code> which defaults to <code>os.time()</code>, but you can change it to whatever youyr system uses to get the current time. There's another special event, <a href="../modules/ahsm.html#EV_ANY">ahsm.EV_ANY</a>, that will be matched by any event.</p>
+<p>This transition besides trigering on <code>ev1</code> will also trigger on timeout. This means that after 5 seconds will trigger as if a special <a href="../modules/ahsm.html#EV_TIMEOUT">ahsm.EV_TIMEOUT</a> event triggered it. Times are measured calling <code>ahsm.get_time()</code> which defaults to <code>os.time()</code>, but you can change it to whatever youyr system uses to get the current time. There's another special event, <a href="../modules/ahsm.html#EV_ANY">ahsm.EV_ANY</a>, that will be matched by any event.</p>
 
 <p>You can also have a <code>guard</code> function, which can decide if an event should trigger the transition or not. For example, you could have this:</p>
 
@@ -198,7 +198,7 @@ $ dot -Tps composite.dot -o composite.ps
   tgt=s1,
   events={ev1, s2.EV_DONE},
   guard = <span class="keyword">function</span>(e)
-    <span class="keyword">if</span> e==ev1 an <span class="global">math</span>.random()&gt;<span class="number">0.5</span> <span class="keyword">then</span> <span class="keyword">return</span> <span class="keyword">false</span> <span class="keyword">end</span>
+    <span class="keyword">if</span> e==ev1 an <span class="global">math</span>.random()&lt;<span class="number">0.5</span> <span class="keyword">then</span> <span class="keyword">return</span> <span class="keyword">false</span> <span class="keyword">end</span>
     <span class="keyword">return</span> <span class="keyword">true</span>
   <span class="keyword">end</span>
 }
@@ -221,7 +221,7 @@ $ dot -Tps composite.dot -o composite.ps
 </pre>
 
 
-<p>In the example states and transitions are arrays so the elements can be browsed by index, but you could give them descriptive names to ease browsing and reusing. As convention, you can also add a event table to publish the events the machine uses:</p>
+<p>In the example states and transitions are arrays so the elements can be browsed by index, but you could give them descriptive names to ease browsing, reusing and debug output. As convention, you can also add an event table to publish the events the machine uses:</p>
 
 
 <pre>
@@ -242,7 +242,7 @@ $ dot -Tps composite.dot -o composite.ps
 </pre>
 
 
-<p>Of course, you can add behavior with <code>entry</code>, <code>exit</code> and <code>doo</code> functions if you want to use it as part of your sate machine. Such a composite state is the standard way a state machine is reused. Typically, a library will return a composite state, and the user will require it and then use it in its own state machine. The events to feed the embedded machine will be found in the events table.</p>
+<p>Of course, you can add behavior with <code>entry</code>, <code>exit</code> and <code>doo</code> functions if you want to use it as part of your state machine. Such a composite state is the standard way a state machine is reused. Typically, a library will return a composite state, and the user will require it and then use it in its own state machine. The events to feed the embedded machine will be found in the events table.</p>
 
 
 <h3>Integrate with your application</h3>
@@ -255,7 +255,7 @@ $ dot -Tps composite.dot -o composite.ps
 </pre>
 
 
-<p>To use a state machine in an application you must feed it events, and let it advance .</p>
+<p>To use a state machine in an application you must feed it events, and let it step through them.</p>
 
 
 <p>Events can be pushed calling <code>hsm.send_event</code>. For example, you can do:</p>
@@ -267,7 +267,7 @@ hsm.send_event( cs.events.evtbl1 )
 </pre>
 
 
-<p>You can send events from anywhere in your program, including from state functions or transition effects.</p>
+<p>You can send events from anywhere in your program, including from state functions or transition effects. Events are queued and then consumed by the machine when stepping.</p>
 
 <p>Also, the state machine will pull events calling <code>hsm.get_events(evqueue)</code>, where evqueue is an array table where events can be added. You can provide this function to add events as needed. For exeample</p>
 
@@ -282,7 +282,7 @@ hsm.send_event( cs.events.evtbl1 )
 </pre>
 
 
-<p>To advance the state machine you have to step it. It can be done in two ways. One option is to call <code>hsm.step( count)</code>, where count is the number of steps you want to perform (defaults to 1). During a step the hsm consumes all registered events since the last step, and processes the affected transitions. During a step new events can be emitted, to be processed in the next step. The <code>hsm.step</code> call returns a idle status. If there are pending events, or there's an active state which has a <code>doo</code> function which erquested to be polled, the idle status will be false. When the machine is iddle, there is no reason to step the hsm until new events are produced. If there are transitions waiting for timeout, the next impeding timeout is returned as second parameter.</p>
+<p>To advance the state machine you have to step it. It can be done in two ways. One option is to call <code>hsm.step( count)</code>, where count is the number of steps you want to perform (defaults to 1). During a step the hsm consumes all queued events since the last step, and processes the affected transitions. During a step new events can be emitted, to be processed in the next step. The <code>hsm.step</code> call returns a idle status. If there are pending events, or there's an active state which has a <code>doo</code> function which erquested to be polled, the idle status will be false. When the machine is iddle, there is no reason to step the hsm until new events are produced. If there are transitions waiting for timeout, the next impeding timeout is returned as second parameter.</p>
 
 <p>If you want to just consume all events and only get the control back when the machine is idle, you can use <code>hsm.loop()</code>. Internally this call is just:</p>
 
@@ -318,7 +318,7 @@ hsm.loop = <span class="keyword">function</span> ()
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-10-22 16:50:46 </i>
+<i style="float:right;">Last updated 2018-10-23 18:36:20 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

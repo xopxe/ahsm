@@ -1,6 +1,6 @@
 # ahsm: a Hierarchical State Machine
 
-ahsm is a very small and simple implementation of Hierarchical State Machines, also known as Statecharts. It's written in Lua, with no external dependencies, and in a single file. Can be run on platforms as small as a microcontroller. The API is inspired by the [rFSM](https://github.com/kmarkus/rFSM) library, but is heavily trimmed down to only the bsic functionality.
+ahsm is a very small and simple implementation of Hierarchical State Machines, also known as Statecharts. It's written in Lua, with no external dependencies, and in a single file. Can be run on platforms as small as a microcontroller. The API is inspired by the [rFSM](https://github.com/kmarkus/rFSM) library, but is heavily trimmed down to only the basic functionality.
 
 THE LIBRARY IS VERY ALPHA QUALITY, AND HAS NOT BEEN TESTED, EXTENSIVELLY OR OTHERWISE.
 
@@ -100,7 +100,7 @@ local t2 = ahsm.transition {
 }
 ```
 
-This transition besides trigering on `ev1` will also trigger on timeout. This means that after 5 seconds will trigger as if a special `ahsm.EV_TIMEOUT` event triggered it. Times are measured calling `ahsm.gettime()` which defaults to `os.time()`, but you can change it to whatever youyr system uses to get the current time. There's another special event, `ahsm.EV_ANY`, that will be matched by any event.
+This transition besides trigering on `ev1` will also trigger on timeout. This means that after 5 seconds will trigger as if a special `ahsm.EV_TIMEOUT` event triggered it. Times are measured calling `ahsm.get_time()` which defaults to `os.time()`, but you can change it to whatever youyr system uses to get the current time. There's another special event, `ahsm.EV_ANY`, that will be matched by any event.
 
 You can also have a `guard` function, which can decide if an event should trigger the transition or not. For example, you could have this:
 
@@ -110,7 +110,7 @@ local t3 = ahsm.transition {
   tgt=s1,
   events={ev1, s2.EV_DONE},
   guard = function(e)
-    if e==ev1 an math.random()>0.5 then return false end
+    if e==ev1 an math.random()<0.5 then return false end
     return true
   end
 }
@@ -130,7 +130,7 @@ local s2 = ahsm.state {
 }
 ```
 
-In the example states and transitions are arrays so the elements can be browsed by index, but you could give them descriptive names to ease browsing and reusing. As convention, you can also add a event table to publish the events the machine uses:
+In the example states and transitions are arrays so the elements can be browsed by index, but you could give them descriptive names to ease browsing, reusing and debug output. As convention, you can also add an event table to publish the events the machine uses:
 
 ```lua
 local cs = ahsm.state {
@@ -149,7 +149,7 @@ local cs = ahsm.state {
 }
 ```
 
-Of course, you can add behavior with `entry`, `exit` and `doo` functions if you want to use it as part of your sate machine. Such a composite state is the standard way a state machine is reused. Typically, a library will return a composite state, and the user will require it and then use it in its own state machine. The events to feed the embedded machine will be found in the events table.
+Of course, you can add behavior with `entry`, `exit` and `doo` functions if you want to use it as part of your state machine. Such a composite state is the standard way a state machine is reused. Typically, a library will return a composite state, and the user will require it and then use it in its own state machine. The events to feed the embedded machine will be found in the events table.
 
 
 ### Integrate with your application
@@ -160,7 +160,7 @@ A machine is created passing a composite state to the `ahsm.init` call. This wil
 local hsm = ahsm.init( cs )
 ```
 
-To use a state machine in an application you must feed it events, and let it advance .
+To use a state machine in an application you must feed it events, and let it step through them.
 
 
 Events can be pushed calling `hsm.send_event`. For example, you can do:
@@ -170,7 +170,7 @@ hsm.send_event( 'an_event' )
 hsm.send_event( cs.events.evtbl1 )
 ```
 
-You can send events from anywhere in your program, including from state functions or transition effects.
+You can send events from anywhere in your program, including from state functions or transition effects. Events are queued and then consumed by the machine when stepping.
 
 Also, the state machine will pull events calling `hsm.get_events(evqueue)`, where evqueue is an array table where events can be added. You can provide this function to add events as needed. For exeample
 
@@ -183,7 +183,7 @@ hsm.get_events = function (evqueue)
 end
 ```
 
-To advance the state machine you have to step it. It can be done in two ways. One option is to call `hsm.step( count)`, where count is the number of steps you want to perform (defaults to 1). During a step the hsm consumes all registered events since the last step, and processes the affected transitions. During a step new events can be emitted, to be processed in the next step. The `hsm.step` call returns a idle status. If there are pending events, or there's an active state which has a `doo` function which erquested to be polled, the idle status will be false. When the machine is iddle, there is no reason to step the hsm until new events are produced. If there are transitions waiting for timeout, the next impeding timeout is returned as second parameter.
+To advance the state machine you have to step it. It can be done in two ways. One option is to call `hsm.step( count)`, where count is the number of steps you want to perform (defaults to 1). During a step the hsm consumes all queued events since the last step, and processes the affected transitions. During a step new events can be emitted, to be processed in the next step. The `hsm.step` call returns a idle status. If there are pending events, or there's an active state which has a `doo` function which erquested to be polled, the idle status will be false. When the machine is iddle, there is no reason to step the hsm until new events are produced. If there are transitions waiting for timeout, the next impeding timeout is returned as second parameter.
 
 If you want to just consume all events and only get the control back when the machine is idle, you can use `hsm.loop()`. Internally this call is just:
 

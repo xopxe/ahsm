@@ -1,5 +1,10 @@
 --- dot graph exporter.
--- Creates a dot drawing of the hsm.
+-- Creates a dot drawing of the hsm. Will try to get friendly
+-- names for events, transitions and states from the exported names (see `states`,
+-- `transitions` and `events` fields from @{ahsm.state_s}), or a `_name` field
+
+Will try to get useful labels for events, 
+-- states and transitions from the exported names or from a _name field.
 --@alias M
 
 local a  -- the "write line" function
@@ -192,8 +197,10 @@ local M = {
   to_file = to_file,
 
 --- Write dot using function.
+-- Useful for streaming. Function will be called for each line of the output.
 -- @param root The root state of the hsm.
--- @param f the name of the file to write to.
+-- @param f the function to be called
+-- @usage to_dot.to_function(state, print)
   to_function = to_function,
 }
 

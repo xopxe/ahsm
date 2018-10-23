@@ -60,7 +60,8 @@ local function init ( composite )
 end
 
 --- Function used to get current time.
--- Replace with whatever your app uses. Must return a number.
+-- Replace with whatever your app uses. Must return a number. This is used when
+-- computing timeouts for transitions.
 -- Defaults to os.time.
 -- @function get_time
 M.get_time = os.time
@@ -81,7 +82,9 @@ end
 
 --- Debug print function.
 -- If provided, this function will be called to print debug information.
--- It must be set before calling @{init}
+-- It must be set before calling @{init}. The debug will try to get friendly
+-- names for events, transitions and states from the exported names (see `states`,
+-- `transitions` and `events` fields from @{state_s}), or a `_name` field. 
 -- @usage ahsm.debug = print
 M.debug = nil
 
@@ -144,7 +147,7 @@ M.EV_TIMEOUT = EV_TIMEOUT
 --- Create a hsm.
 -- Constructs and initializes an hsm from a root state.
 -- @param root the root state, must be a composite.
--- @return inialized hsm
+-- @return initialized hsm
 M.init = function ( root )
   local hsm = { 
     --- Callback for pulling events.
@@ -180,7 +183,7 @@ M.init = function ( root )
         local t_timeout = tt.timeout
         if t_timeout<timeout then timeout, t = t_timeout, tt end
       end
-      if M.debug then M.debug('sched', now + timeout,  debug_names[s]..'--'..tostring(debug_names[t] or t)) end
+      if M.debug then M.debug('sched', now + timeout,  debug_names[s]..'--'..tostring(debug_names[t] or t)..'->'..debug_names[t.tgt]) end
       s.expiration = now + timeout
     end
 
@@ -201,7 +204,6 @@ M.init = function ( root )
   enter_state (hsm, root, M.get_time()) -- activate root state
 
   local function step ()
-    local idle = true
     local next_expiration = math_huge
     local now = M.get_time()
 
@@ -266,6 +268,8 @@ M.init = function ( root )
     for i=1, #evqueue do
       rawset(evqueue, i, nil)
     end
+
+    local idle = true
 
     --call leave_state, traverse transition, and enter_state
     for t, e in pairs(active_trans) do
