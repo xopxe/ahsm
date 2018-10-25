@@ -4,7 +4,7 @@ local ahsm = require 'ahsm'
 local socket = require 'socket'
 
 ahsm.get_time = socket.gettime
-ahsm.debug = function(...) print (ahsm.get_time(), ...) end
+ahsm.debug = require 'tools.debug_plain'.out
 
 local composite_s = require 'examples.composite'
 composite_s.entry = function() print "MACHINE STARTED" end

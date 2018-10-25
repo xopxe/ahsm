@@ -13,32 +13,21 @@ local math_huge = math.huge
 local M = {}
 
 local EV_ANY = {}
-local EV_TIMEOUT = {}
-
-local debug_names = {}
-
-local function pick_debug_name(v, nv)
-  if debug_names[v] then return debug_names[v] end
-  if type(nv)=='string' then 
-    debug_names[v] = nv
-  else 
-    debug_names[v] = tostring(v._name or v) 
-  end
-  return debug_names[v]
-end
+local EV_TIMEOUT = {_name='EV_TIMEOUT'}
 
 
 local function init ( composite )
   --initialize debug name for states and events
   if M.debug then 
     for ne, e in pairs(composite.events or {}) do
-      M.debug('event', e, '"'..pick_debug_name(e, ne)..'"')
+      M.debug('event', e, ne)
     end
     for ns, s in pairs(composite.states) do
-      M.debug('state', s, '"'..pick_debug_name(s, ns)..'"')
+      s.container = composite
+      M.debug('state', s, ns)
     end
     for nt, t in pairs(composite.transitions) do
-      M.debug('trans', t, '"'..pick_debug_name(t, nt)..'"')
+      M.debug('trans', t, nt)
     end
   end
 
@@ -48,7 +37,7 @@ local function init ( composite )
       if t.src == s then 
         for _, e in pairs(t.events or {}) do
           if M.debug then
-            M.debug('trsel', debug_names[s], '--'..pick_debug_name(t, nt)..'['..(debug_names[e] or e._name or e)..']->', debug_names[t.tgt])
+            M.debug('trsel', s, t, e, t.tgt)
           end
           s.out_trans[e] = s.out_trans[e] or {}
           s.out_trans[e][t] = true
@@ -75,7 +64,6 @@ M.get_time = os.time
 M.state = function (state_s)
   state_s = state_s or {}
   state_s.EV_DONE = {} --singleton, trigered on state completion
-  if M.debug then debug_names[state_s.EV_DONE] = 'EV_DONE' end
   state_s.out_trans = {}
   return state_s
 end
@@ -156,15 +144,16 @@ M.init = function ( root )
     -- @param evqueue an array where new events can be added.
     -- @function hsm.get_events
     get_events = nil, --function (evqueue) end,
+    root = root,
   }
+  root.container = {_name='.'} -- fake container for root state
+  if M.debug then M.debug('state', root, '') end
+  
   init( root )
 
   if root.exit then -- use gc to trigger exit() function on root state
     setmetatable(root, mt_state_gc)
   end
-
-  root.container = {} -- fake container for root state
-  debug_names[EV_TIMEOUT] = 'EV_TIMEOUT'
 
   local evqueue = {} -- array, will hold events for step() to process
   local current_states = {}  -- states being active
@@ -183,12 +172,12 @@ M.init = function ( root )
         local t_timeout = tt.timeout
         if t_timeout<timeout then timeout, t = t_timeout, tt end
       end
-      if M.debug then M.debug('sched', now + timeout,  debug_names[s]..'--'..tostring(debug_names[t] or t)..'->'..debug_names[t.tgt]) end
+      if M.debug then M.debug('sched', now, now + timeout, s, t) end
       s.expiration = now + timeout
     end
 
     if s.initial then
-      if M.debug then M.debug('init', debug_names[s.initial]) end
+      if M.debug then M.debug('init', s.initial) end
       enter_state(hsm, s.initial, now) -- recurse into embedded hsm
     end
   end
@@ -275,7 +264,8 @@ M.init = function ( root )
     for t, e in pairs(active_trans) do
       if current_states[t.src] then --src state could've been left
         if M.debug then 
-          M.debug('step', debug_names[t.src], '--'..tostring(debug_names[t] or t)..'['..tostring(debug_names[e] or e)..']->', debug_names[t.tgt]) 
+          M.debug('step', t, e) 
+          --M.debug('step', debug_names[t.src], '--'..tostring(debug_names[t] or t)..'['..tostring(debug_names[e] or e)..']->', debug_names[t.tgt]) 
         end
         idle = false
         exit_state(hsm, t.src)
