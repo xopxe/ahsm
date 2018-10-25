@@ -1,10 +1,7 @@
 --- dot graph exporter.
 -- Creates a dot drawing of the hsm. Will try to get friendly
 -- names for events, transitions and states from the exported names (see `states`,
--- `transitions` and `events` fields from @{ahsm.state_s}), or a `_name` field
-
-Will try to get useful labels for events, 
--- states and transitions from the exported names or from a _name field.
+-- `transitions` and `events` fields from @{ahsm.state_s}), or a `_name` field.
 --@alias M
 
 local a  -- the "write line" function
