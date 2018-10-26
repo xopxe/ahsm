@@ -30,19 +30,23 @@
   <li><a href="../index.html">Index</a></li>
 </ul>
 
-
-
-<h2>Scripts</h2>
-<ul class="nowrap">
-  <li><strong>run.lua</strong></li>
-  <li><a href="../scripts/run_to_dot.lua.html">run_to_dot.lua</a></li>
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
 </ul>
+
+
 <h2>Modules</h2>
 <ul class="nowrap">
   <li><a href="../modules/ahsm.html">ahsm</a></li>
   <li><a href="../modules/tools.to_dot.html">tools.to_dot</a></li>
   <li><a href="../modules/tools.debug_plain.html">tools.debug_plain</a></li>
-  <li><a href="../modules/tools.cb_list.html">tools.cb_list</a></li>
+  <li><strong>tools.cb_list</strong></li>
+</ul>
+<h2>Scripts</h2>
+<ul class="nowrap">
+  <li><a href="../scripts/run.lua.html">run.lua</a></li>
+  <li><a href="../scripts/run_to_dot.lua.html">run_to_dot.lua</a></li>
 </ul>
 <h2>Topics</h2>
 <ul class="">
@@ -59,32 +63,49 @@
 
 <div id="content">
 
-<h1>Script <code>run.lua</code></h1>
-<p>Simple run script.</p>
-<p> This script will execute a state machine from a library. This script must be
- placed in the same directory with hsm.lua. </p>
-    <h3>Usage:</h3>
-    <ul>
-        <li><pre class="example">lua run.lua  [debug] [sleep=none|os|socket] [time=ahsm|os|socket] &lt;fsm.lua&gt;
-</pre></li>
-        <li><pre class="example">[debug] enables the ahsm logging using print.
-</pre></li>
-        <li><pre class="example">[sleep=none|os|socket] selects a sleeping mode.
-&quot;none&quot; is polling, &quot;os&quot; uses a call to the sleep pogram,
-and &quot;socket&quot; uses luasockets sleep().
-</pre></li>
-        <li><pre class="example">[time=ahsm|os|socket] sets the ahsm.gettime function.
-&quot;ahsm&quot; keeps it unchanged, &quot;os&quot; sets to call to os.time(),
-and &quot;socket&quot; set to luasockets gettime()
-</pre></li>
-    </ul>
+<h1>Module <code>tools.cb_list</code></h1>
+<p>A callback proxy for multiple for multiple callbacks.</p>
+<p>
+
+</p>
 
 
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#get_list">get_list ()</a></td>
+	<td class="summary">Get a new list.</td>
+	</tr>
+</table>
 
 <br/>
 <br/>
 
 
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "get_list"></a>
+    <strong>get_list ()</strong>
+    </dt>
+    <dd>
+    Get a new list.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        an object to be registered as callback. Offers <code>append</code> and <code>remove</code>
+ calls for regitering callbacks.
+    </ol>
+
+
+
+
+</dd>
+</dl>
 
 
 </div> <!-- id="content" -->
