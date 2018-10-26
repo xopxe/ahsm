@@ -184,11 +184,11 @@ M.init = function ( root )
     end
   end
 
-  local function exit_state (hsm, s, dont_call)
-    if (not dont_call) and s.exit then s.exit(s) end
+  local function exit_state (hsm, s)
+    if s.exit then s.exit(s) end
     current_states[s] = nil
     if s.current_substate then 
-      exit_state (hsm, s.current_substate, true) --FIXME call or not call?
+      exit_state (hsm, s.current_substate) --FIXME call or not call?
     end
   end
 
