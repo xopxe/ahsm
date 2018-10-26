@@ -26,8 +26,15 @@ end
 M.print = print
 
 -- -- Function to be passed assigned to `ahsm.debug`.
-M.out = function( action, p1, p2, p3, p4, p5, p6 )
-  if action == 'event' then
+M.out = function( action, p1, p2, p3, p4 )
+  if action == 'step' then
+    M.print(action, debug_names[p1.src], '--'..debug_names[p1]..'['..pick_debug_name(p2)..']->', debug_names[p1.tgt])
+  elseif action == 'init' then
+    M.print(action, debug_names[p1])
+  elseif action == 'sched' then
+    --M.print(action, p1, p2, debug_names[p3],'--'..debug_names[p4]..'->', debug_names[p4.tgt])
+    M.print(action, p1, p2)
+  elseif action == 'event' then
     M.print(action, p1, '"'..pick_debug_name(p1, p2)..'"')
   elseif action == 'state' then
     debug_names[p1.EV_DONE] = 'EV_DONE'
@@ -36,15 +43,7 @@ M.out = function( action, p1, p2, p3, p4, p5, p6 )
     M.print(action, p1, '"'..pick_debug_name(p1, p2)..'"')
   elseif action == 'trsel' then
     M.print(action, debug_names[p1], '--'..debug_names[p2]..'['
-      ..pick_debug_name(p3)..']->', debug_names[p4])
-  elseif action == 'sched' then
-    M.print(action, p1, p2, debug_names[p3],'--'..debug_names[p4]..'->', debug_names[p4.tgt]) 
-  elseif action == 'init' then
-    M.print(action, debug_names[p1])
-  elseif action == 'step' then
-    M.print(action, debug_names[p1.src], '--'..debug_names[p1]..'['..pick_debug_name(p2)..']->', debug_names[p1.tgt]) 
-
-
+      ..pick_debug_name(p3)..']->', debug_names[p2.tgt])
   end
 end
 

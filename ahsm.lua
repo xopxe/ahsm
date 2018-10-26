@@ -37,7 +37,7 @@ local function init ( composite )
       if t.src == s then 
         for _, e in pairs(t.events or {}) do
           if M.debug then
-            M.debug('trsel', s, t, e, t.tgt)
+            M.debug('trsel', s, t, e)
           end
           s.out_trans[e] = s.out_trans[e] or {}
           s.out_trans[e][t] = true
@@ -91,9 +91,11 @@ local mt_transition = {
       local src_out_trans = t.src.out_trans
       local number_v = tonumber(v)
       if number_v then  -- add a timeout
+        if M.debug then M.debug('sched', t, v) end
         src_out_trans[EV_TIMEOUT] = src_out_trans[EV_TIMEOUT] or {}
         src_out_trans[EV_TIMEOUT][t] = true
       elseif src_out_trans[EV_TIMEOUT] then -- remove a timeout
+        if M.debug then M.debug('sched', t, 'unset') end
         src_out_trans[EV_TIMEOUT][t] = nil
       end
       rawset(t, to_key, number_v)
@@ -148,7 +150,7 @@ M.init = function ( root )
   }
   root.container = {_name='.'} -- fake container for root state
   if M.debug then M.debug('state', root, '') end
-  
+
   init( root )
 
   if root.exit then -- use gc to trigger exit() function on root state
@@ -172,7 +174,7 @@ M.init = function ( root )
         local t_timeout = tt.timeout
         if t_timeout<timeout then timeout, t = t_timeout, tt end
       end
-      if M.debug then M.debug('sched', now, now + timeout, s, t) end
+      --if M.debug then M.debug('sched', now, now + timeout, s, t) end
       s.expiration = now + timeout
     end
 
