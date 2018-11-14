@@ -6,20 +6,13 @@ THE LIBRARY IS VERY ALPHA QUALITY, AND HAS NOT BEEN TESTED, EXTENSIVELLY OR OTHE
 
 ## Features
 
-- Lua only, with no eternal dependencies. Supports Lua 5.1, 5.2, 5.3.
-- States, transitions and events.
-   - States support `entry`, `exit` and `do` functions
-   - Transitions support `effect` and `guard` functions
-   - Events can be of any type.
-- A state can have a state machine embedded, which is active while the state is active. 
+- Lua only, with no external dependencies. Supports Lua 5.1, 5.2, 5.3.
+- States, transitions and events. States support `entry`, `exit` and `do` functions. Transitions support `effect` and `guard` functions. Events can be of any type. A state can have a state machine embedded, which is active while the state is active. 
 - A simple timeout scheme for transitions that solves many usecases without having to use timers.
-- Easily embeddable in a system:
-   - Events can be pushed or pulled.
-   - When using the timeout functionality computes the idle times to allow saving on CPU.
-   - Easily browsable data representation for recovering sub-states, events, etc.
+- Easily embeddable in a system: Events can be pushed or pulled; When using the timeout functionality computes the idle times to allow saving on CPU; Easily browsable data representation for recovering sub-states, events, etc.
 - Events can be of any type.
 - Support for longrunning actions in states using coroutines.
-- Additional tools, like a dot graph exporter for visualization.
+- Additional tools, like debugging output and a dot graph exporter for visualization.
 
 See test.lua for an example on utilization.
 
@@ -163,11 +156,11 @@ local hsm = ahsm.init( cs )
 To use a state machine in an application you must feed it events, and let it step through them.
 
 
-Events can be pushed calling `hsm.send_event`. For example, you can do:
+Events can be pushed calling `hsm.queue_event`. For example, you can do:
 
 ```lua
-hsm.send_event( 'an_event' )
-hsm.send_event( cs.events.evtbl1 )
+hsm.queue_event( 'an_event' )
+hsm.queue_event( cs.events.evtbl1 )
 ```
 
 You can send events from anywhere in your program, including from state functions or transition effects. Events are queued and then consumed by the machine when stepping.
@@ -197,6 +190,17 @@ hsm.loop = function ()
 end
 ```
 
+Also, it is possible to use the state machine in a completelly event driven architecture. 
+A simple way of doing this is using `send_event()`. This is equivalent to queue an event and then call `loop()`.
+For example, you could have callbacks drive a state machine:
+
+```lua
+-- lets suppose we have a timer module
+timer.register_callback(
+  1,                      -- each second
+  hsm.send_event('tick')  -- process an event
+)
+```
 
 
 ## License

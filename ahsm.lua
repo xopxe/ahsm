@@ -303,11 +303,18 @@ M.init = function ( root )
   end
 
   --- Push new event to the hsm.
-  -- All events added before running the hsm using @{step} or @{loop} are 
-  -- considered simultaneous, and the order in which they are processed 
-  -- is undetermined.
+  -- The event will be queued, and then the machine will be looped using @{loop}
   -- @param ev an event. Can be of any type except nil.
   hsm.send_event = function (ev)
+    evqueue[#evqueue+1] = ev
+    hsm.loop()
+  end
+
+  --- Queue new event to the hsm.
+  -- The queued messages will be processed when machine is stepped using 
+  -- @{step} or @{loop}. Also, see @{send_event}
+  -- @param ev an event. Can be of any type except nil.
+  hsm.queue_event = function (ev)
     evqueue[#evqueue+1] = ev
   end
 
