@@ -23,14 +23,10 @@ end
 --local to_dot = require 'to_dot'
 
 send(composite_s.events.e_on)
-hsm.loop()
 send('e_restart')
-hsm.loop()
 
 --to_dot.to_function(composite_s, print)
 
 send('e_off')
-hsm.loop()
 send(composite_s.events.e_on)
-hsm.loop()
 while hsm.loop() do end
