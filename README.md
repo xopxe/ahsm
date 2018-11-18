@@ -46,10 +46,10 @@ To create a hsm you do:
 
 - define states.
 - define transitions.
-- compose states
+- compose states.
 - integrate with your application.
 
-### Defining state.
+### Defining states.
 
 States can be leaf or composite. We will deal with composite states later. A state is a table you initialized with the `ahsm.state` call. You can add code to the state, to be executed at different moments trough it's lifetime:
 
@@ -67,7 +67,7 @@ local s2 = ahsm.state {               -- another state, with behavior
 
 ### Defining transitions.
 
-A transitions specifies a change between states as response to an event. As states, a transition is a table you pass to ahsm to initialize:
+A transition specifies a change between states as response to an event. As states, a transition is a table you pass to ahsm to initialize:
 
 ```lua
 local t1 = ahsm.transition {
@@ -77,7 +77,6 @@ local t1 = ahsm.transition {
   effect = print,
 }
 ```
-
 
 In this case, `t1` will trigger a change from state `s1` to state `s2` whenever events `'an_event'` or `'another_event'` are emitted. This transition also has an effect function, which is called on transition traversal with the event that trigered it as parameter.
 
@@ -93,7 +92,7 @@ local t2 = ahsm.transition {
 }
 ```
 
-This transition besides trigering on `ev1` will also trigger on timeout. This means that after 5 seconds will trigger as if a special `ahsm.EV_TIMEOUT` event triggered it. Times are measured calling `ahsm.get_time()` which defaults to `os.time()`, but you can change it to whatever youyr system uses to get the current time. There's another special event, `ahsm.EV_ANY`, that will be matched by any event.
+This transition besides trigering on `ev1` will also trigger on timeout. This means that after 5 seconds it will trigger as if a special `ahsm.EV_TIMEOUT` event triggered it. Times are measured calling `ahsm.get_time()` which defaults to `os.time()`, but you can change it to whatever your system uses to get the current time. There's another special event, `ahsm.EV_ANY`, that will be matched by any event.
 
 You can also have a `guard` function, which can decide if an event should trigger the transition or not. For example, you could have this:
 
@@ -113,7 +112,7 @@ This would refuse about half of the `ev1` events. In this example the `EV_DONE` 
 
 ### Compose states machines
 
-A whole state machine can be collected in a single composite state. This is a state that can be used  as part of another state machine. You create a composite state just as a plain state, adding the embedded states and tansitions:
+A whole state machine can be collected into a single composite state. This is a state that can be used as part of another state machine. You create a composite state just as a plain state, adding the embedded states and tansitions:
 
 ```lua
 local s2 = ahsm.state {
@@ -123,22 +122,22 @@ local s2 = ahsm.state {
 }
 ```
 
-In the example states and transitions are arrays so the elements can be browsed by index, but you could give them descriptive names to ease browsing, reusing and debug output. As convention, you can also add an event table to publish the events the machine uses:
+In the example states and transitions are arrays so the elements can be browsed by index, but you could give them descriptive names to ease browsing, reuse, and debug output. As convention, you can also add an event table to publish the events the machine uses:
 
 ```lua
 local cs = ahsm.state {
   events = {
     evstr1 ='an_event',
     evstr2 ='another_event',
-    evtbl1 = ev1
+    evtbl1 = ev1,
   },
   states = {empty=s1, behavior=s2},
   transitions = {
     onstring = t1,
     withtimeout = t2,
-    withguard = t3
+    withguard = t3,
   },
-  initial = s1  -- the inital state of the embedded machine
+  initial = s1,  -- the inital state of the embedded machine
 }
 ```
 
