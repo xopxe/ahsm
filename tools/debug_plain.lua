@@ -33,7 +33,7 @@ M.out = function( action, p1, p2, p3, p4 )
     M.print(action..'\t'..debug_names[p1])
   elseif action == 'sched' then
     --M.print(action, p1, p2, debug_names[p3],'--'..debug_names[p4]..'->', debug_names[p4.tgt])
-    M.print(action..'\t'..tostring(p1)..'\t'..tostring(p2)) --called before init
+    M.print(action..'\t'..(debug_names[p1] or tostring(p1))..'\t'..tostring(p2)) --called before init
   elseif action == 'event' then
     M.print(action, tostring(p1)..'\t"'..pick_debug_name(p1, p2)..'"')
   elseif action == 'state' then
