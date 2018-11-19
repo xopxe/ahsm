@@ -194,7 +194,12 @@ M.init = function ( root )
 
   enter_state (hsm, root, M.get_time()) -- activate root state
 
+  local stepping = false  -- do not allow recursion whil stepping
+
   local function step ()
+    if stepping then return end
+    stepping = true
+
     local next_expiration = math_huge
     local now = M.get_time()
 
@@ -240,10 +245,11 @@ M.init = function ( root )
         if out_trans_timeout then 
           for t in pairs(out_trans_timeout) do -- search through transitions on tmout 
             local expiration = s.expiration
-            if now>expiration then
+            if now>=expiration then
               if (t.guard==nil or t.guard(EV_TIMEOUT)) then 
                 transited = true
-                active_trans[s.out_trans[EV_TIMEOUT]] = EV_TIMEOUT
+                --active_trans[s.out_trans[EV_TIMEOUT]] = EV_TIMEOUT
+                active_trans[t] = EV_TIMEOUT
               end
             else
               if expiration<next_expiration then
@@ -267,7 +273,6 @@ M.init = function ( root )
       if current_states[t.src] then --src state could've been left
         if M.debug then 
           M.debug('step', t, e) 
-          --M.debug('step', debug_names[t.src], '--'..tostring(debug_names[t] or t)..'['..tostring(debug_names[e] or e)..']->', debug_names[t.tgt]) 
         end
         idle = false
         exit_state(hsm, t.src)
@@ -299,6 +304,7 @@ M.init = function ( root )
       next_expiration = nil
     end
 
+    stepping = false
     return idle, next_expiration
   end
 
