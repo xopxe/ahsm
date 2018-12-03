@@ -197,7 +197,7 @@ M.init = function ( root )
   local stepping = false  -- do not allow recursion whil stepping
 
   local function step ()
-    if stepping then return end
+    if stepping then return true end
     stepping = true
 
     local next_expiration = math_huge

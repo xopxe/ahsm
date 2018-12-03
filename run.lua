@@ -28,8 +28,8 @@ end
 local ahsm = require 'ahsm'
 
 -- get parameters
+if #arg==0 then exit_on_error('Missing parameter') end
 local filename = arg[#arg]
-if not filename then exit_on_error('Missing parameter') end
 
 for i = 1, #arg-1 do
   local param = arg[i]
