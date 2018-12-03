@@ -209,6 +209,6 @@ Same as Lua, see LICENSE.
 
 ## Who?
 
-Copyright (C) 2018 Jorge Visca, jvisca@fing.edu.
+Copyright (C) 2018 Jorge Visca, jvisca@fing.edu.uy
 
 Grupo MINA - Facultad de Ingeniería - Universidad de la República
