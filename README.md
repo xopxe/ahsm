@@ -54,7 +54,7 @@ To create a hsm you do:
 States can be leaf or composite. We will deal with composite states later. A state is a table you initialized with the `ahsm.state` call. You can add code to the state, to be executed at different moments trough it's lifetime:
 
 ```lua
-local s1 = ahsm {}                    -- an empty state
+local s1 = ahsm.state {}                    -- an empty state
 local s2 = ahsm.state {               -- another state, with behavior
   entry = function() print 'IN' end,  -- to be called on state activation
   exit = function() print 'OUT' end,  -- to be called on state deactivation

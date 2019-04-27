@@ -7,7 +7,7 @@
 -- @usage local ahsm = require 'ahsm'
 -- @alias M
 
-local pairs, type, rawset = pairs, type, rawset
+local pairs, ipairs, type, rawset, rawget, tonumber = pairs, ipairs, type, rawset, rawget, tonumber
 local math_huge = math.huge
 
 local M = {}
@@ -309,7 +309,10 @@ M.init = function ( root )
   end
 
   --- Push new event to the hsm.
-  -- The event will be queued, and then the machine will be looped using @{loop}
+  -- The event will be queued, and then the machine will be looped using 
+  -- @{loop}.  
+  -- BEWARE: if this is called from a callback from C side, will cause a core 
+  -- panic. In this scenario you must use @{queue_event}.
   -- @param ev an event. Can be of any type except nil.
   hsm.send_event = function (ev)
     evqueue[#evqueue+1] = ev
