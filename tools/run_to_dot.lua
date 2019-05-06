@@ -24,5 +24,5 @@ local to_dot = require 'to_dot'
 if filetarget then
   assert(to_dot.to_file(root, filetarget))
 else
-  local s = to_dot.to_function(root, print)
+  to_dot.to_function(root, print)
 end
