@@ -157,7 +157,7 @@ M.init = function ( root )
     setmetatable(root, mt_state_gc)
   end
 
-  local evqueue = {} -- array, will hold events for step() to process
+  local evqueue = { n=0 } -- array, will hold events for step() to process
   local current_states = {}  -- states being active
   local active_trans = {} --must be balanced (enter and leave step() empty)
 
@@ -212,7 +212,9 @@ M.init = function ( root )
     for s, _ in pairs( current_states ) do
       local transited = false
       -- check for matching transitions for events
-      for _, e in ipairs(evqueue) do
+      --for _, e in ipairs(evqueue) do
+      for i = 1, evqueue.n do
+        local e=evqueue[i]
         local out_trans_e = s.out_trans[e]
         if out_trans_e then 
           for t in pairs(out_trans_e) do -- search through transitions on event 
@@ -262,9 +264,10 @@ M.init = function ( root )
     end
 
     -- purge current events
-    for i=1, #evqueue do
+    for i=1, evqueue.n do
       rawset(evqueue, i, nil)
     end
+    evqueue.n = 0
 
     local idle = true
 
@@ -286,13 +289,15 @@ M.init = function ( root )
     for s, _ in pairs(current_states) do
       if not s.done then
         if type(s.doo)=='nil' then 
-          evqueue[#evqueue+1] = s.EV_DONE
+          evqueue.n = evqueue.n + 1
+          evqueue[evqueue.n] = s.EV_DONE
           s.done = true
           idle = false -- let step again for new event
         elseif type(s.doo)=='function' then 
           local poll_flag = s.doo(s) --TODO pcall
           if not poll_flag then 
-            evqueue[#evqueue+1] = s.EV_DONE
+            evqueue.n = evqueue.n + 1
+            evqueue[evqueue.n] = s.EV_DONE
             s.done = true
             idle = false -- let step again for new EV_DONE event
           end
@@ -315,7 +320,8 @@ M.init = function ( root )
   -- panic. In this scenario you must use @{queue_event}.
   -- @param ev an event. Can be of any type except nil.
   hsm.send_event = function (ev)
-    evqueue[#evqueue+1] = ev
+    evqueue.n = evqueue.n + 1
+    evqueue[evqueue.n] = ev
     hsm.loop()
   end
 
@@ -324,7 +330,8 @@ M.init = function ( root )
   -- @{step} or @{loop}. Also, see @{send_event}
   -- @param ev an event. Can be of any type except nil.
   hsm.queue_event = function (ev)
-    evqueue[#evqueue+1] = ev
+    evqueue.n = evqueue.n + 1
+    evqueue[evqueue.n] = ev
   end
 
   --- Step trough the hsm.
