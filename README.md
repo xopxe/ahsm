@@ -102,7 +102,7 @@ local t3 = ahsm.transition {
   tgt=s1,
   events={ev1, s2.EV_DONE},
   guard = function(e)
-    if e==ev1 an math.random()<0.5 then return false end
+    if e==ev1 and math.random()<0.5 then return false end
     return true
   end
 }
