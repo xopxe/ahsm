@@ -2,8 +2,6 @@
 
 ahsm is a very small and simple implementation of Hierarchical State Machines, also known as Statecharts. It's written in Lua, with no external dependencies, and in a single file. Can be run on platforms as small as a microcontroller. The API is inspired by the [rFSM](https://github.com/kmarkus/rFSM) library, but is heavily trimmed down to only the basic functionality.
 
-THE LIBRARY IS VERY ALPHA QUALITY, AND HAS NOT BEEN TESTED, EXTENSIVELLY OR OTHERWISE.
-
 ## Features
 
 - Lua only, with no external dependencies. Supports Lua 5.1, 5.2, 5.3.
@@ -54,7 +52,7 @@ To create a hsm you do:
 States can be leaf or composite. We will deal with composite states later. A state is a table you initialized with the `ahsm.state` call. You can add code to the state, to be executed at different moments trough it's lifetime:
 
 ```lua
-local s1 = ahsm.state {}                    -- an empty state
+local s1 = ahsm.state {}              -- an empty state
 local s2 = ahsm.state {               -- another state, with behavior
   entry = function() print 'IN' end,  -- to be called on state activation
   exit = function() print 'OUT' end,  -- to be called on state deactivation
