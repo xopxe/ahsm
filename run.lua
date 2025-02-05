@@ -35,7 +35,7 @@ for i = 1, #arg-1 do
   local param = arg[i]
   if param == 'debug' then 
     ahsm.debug = require 'tools/debug_plain'.out
-  elseif param == 'forever' then 
+  elseif param == 'forever' then
     forever = true
   else
     local k, v = string.match(param, '^([^=]*)=(.*)$')

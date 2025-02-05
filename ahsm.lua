@@ -305,12 +305,13 @@ M.init = function ( root )
       end
     end
 
-    if next_expiration==math_huge then
-      next_expiration = nil
-    end
-
     stepping = false
-    return idle, next_expiration
+
+    if next_expiration==math_huge then
+      return idle, nil
+    else
+      return idle, next_expiration
+    end
   end
 
   --- Push new event to the hsm.
