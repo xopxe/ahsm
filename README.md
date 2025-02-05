@@ -5,7 +5,7 @@ ahsm is a very small and simple implementation of Hierarchical State Machines, a
 ## Features
 
 - Lua only, with no external dependencies. Supports Lua 5.1, 5.2, 5.3.
-- States, transitions, and events. States support `entry`, `exit` and `do` functions. Transitions support `effect` and `guard` functions. Events can be of any type. A state can have a state machine embedded, which is active while the state is active. 
+- States, transitions, and events. States support `entry`, `exit` and `do` functions. Transitions support `effect` and `guard` functions. Events can be of any type. A state can have a state machine embedded, which is active while the state is active.
 - A simple timeout scheme for transitions that solves many use cases without having to use timers.
 - Easily embeddable in a system: Events can be pushed or pulled; When using the timeout functionality computes the idle times to allow saving on CPU; Easily browsable data representation for recovering sub-states, events, etc.
 - Events can be of any type.
@@ -14,23 +14,21 @@ ahsm is a very small and simple implementation of Hierarchical State Machines, a
 
 See test.lua for an example on utilization.
 
-
 ## How to run?
 
 To run examples, do:
 
 ```bash
-$ lua run.lua examples/helloworld.lua
-$ lua run.lua test.lua
+lua run.lua examples/helloworld.lua
+lua run.lua test.lua
 ```
 
 To create a graphical representation of machines, do:
 
 ```bash
-$ lua tools/run_to_dot.lua examples/composite.lua > composite.dot
-$ dot -Tps composite.dot -o composite.ps
+lua tools/run_to_dot.lua examples/composite.lua > composite.dot
+dot -Tps composite.dot -o composite.ps
 ```
-
 
 ## How to use?
 
@@ -47,7 +45,7 @@ To create a hsm, you do:
 - compose states.
 - integrate with your application.
 
-### Defining states.
+### Defining states
 
 States can be leaf or composite. We will deal with composite states later. A state is a table you initialized with the `ahsm.state` call. You can add code to the state to be executed at different moments trough it's lifetime:
 
@@ -63,7 +61,7 @@ local s2 = ahsm.state {               -- another state, with behavior
 }
 ```
 
-### Defining transitions.
+### Defining transitions
 
 A transition specifies a change between states as a response to an event. As with states, a transition is a table you pass to ahsm to initialize:
 
@@ -141,7 +139,6 @@ local cs = ahsm.state {
 
 Of course, you can add behavior with `entry`, `exit`, and `doo` functions if you want to use it as part of your state machine. Such a composite state is the standard way a state machine is reused. Typically, a library will return a composite state, and the user will require it and then use it in its own state machine. The events to feed the embedded machine will be found in the events table.
 
-
 ### Integrate with your application
 
 A machine is created by passing a composite state to the `ahsm.init` call. This call will return a table representing the machine. The composite state has a machine embedded and will be started at the `initial` state.
@@ -151,7 +148,6 @@ local hsm = ahsm.init( cs )
 ```
 
 To use a state machine in an application, you must feed it events and let it step through them.
-
 
 Events can be pushed by calling `hsm.queue_event`. For example, you can do:
 
@@ -187,7 +183,7 @@ hsm.loop = function ()
 end
 ```
 
-Also, it is possible to use the state machine in a fully event-driven architecture. 
+Also, it is possible to use the state machine in a fully event-driven architecture.
 A simple way of doing this is using `send_event()`. This is equivalent to queueing an event and then calling `loop()`.
 For example, you could have callbacks drive a state machine:
 
@@ -199,14 +195,12 @@ timer.register_callback(
 )
 ```
 
-
 ## License
 
 Same as Lua, see LICENSE.
 
-
 ## Who?
 
-Copyright (C) 2018 Jorge Visca, jvisca@fing.edu.uy
+Copyright (C) 2018 Jorge Visca <jvisca@fing.edu.uy>
 
 Grupo MINA - Facultad de Ingeniería - Universidad de la República

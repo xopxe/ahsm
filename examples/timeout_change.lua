@@ -19,8 +19,8 @@ local t21 = ahsm.transition {
   tgt = s1,
   events = {s2.EV_DONE},
   effect = function()
-    if t12.timeout < 5.0 then 
-      t12.timeout = t12.timeout+1 
+    if t12.timeout < 5.0 then
+      t12.timeout = t12.timeout+1.0
     else
       --t12.timeout = nil
       os.exit()

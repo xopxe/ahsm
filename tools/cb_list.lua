@@ -1,4 +1,4 @@
---- A callback proxy for multiple for multiple callbacks.
+--- A callback proxy for multiple callbacks.
 
 local M = {}
 
