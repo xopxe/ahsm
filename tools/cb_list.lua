@@ -25,9 +25,9 @@ local cbs_mt = {
 -- calls for regitering callbacks.
 M.get_list = function ()
   local cbs = {
-    append = cbs_append
-    remove = cbs_remove
-    call = cbs_call
+    append = cbs_append,
+    remove = cbs_remove,
+    call = cbs_call,
   }
   setmetatable (cbs, cbs_mt)
 
